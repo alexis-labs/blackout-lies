@@ -94,6 +94,7 @@ export type NarrativeEntry = {
   id: string;
   type: "player" | "world" | "system" | "npc";
   text: string;
+  isStreaming?: boolean;
   input?: string;
   locationId: string;
   createdAt: string;

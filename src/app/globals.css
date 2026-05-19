@@ -439,19 +439,19 @@ input:disabled {
   box-shadow: 0 0 14px rgba(213, 168, 74, 0.16);
 }
 
-.sidebar-footer,
-.save-actions,
+.campaign-controls,
 .mobile-tabs {
   display: flex;
   gap: 8px;
 }
 
-.sidebar-footer {
-  flex-wrap: wrap;
+.campaign-controls {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: auto;
 }
 
-.sidebar-footer button,
-.save-actions button,
+.campaign-controls button,
 .mobile-tabs button {
   display: inline-flex;
   align-items: center;
@@ -472,19 +472,12 @@ input:disabled {
     box-shadow 160ms ease;
 }
 
-.sidebar-footer button {
-  flex: 1 1 calc(50% - 8px);
+.campaign-controls button {
   padding: 0 8px;
   font-size: 0.78rem;
 }
 
-.save-actions button {
-  padding: 0 10px;
-  font-size: 0.8rem;
-}
-
-.sidebar-footer button:hover,
-.save-actions button:hover,
+.campaign-controls button:hover,
 .mobile-tabs button:hover,
 .mobile-tabs button.active {
   border-color: var(--bright-gold);
@@ -493,14 +486,6 @@ input:disabled {
     inset 0 0 18px rgba(213, 168, 74, 0.08),
     0 0 18px rgba(213, 168, 74, 0.12);
   transform: translateY(-1px);
-}
-
-.top-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  min-height: 36px;
 }
 
 .narrative-frame {
@@ -618,6 +603,7 @@ input:disabled {
 }
 
 .narrative-entry {
+  position: relative;
   max-width: 880px;
   padding: 14px 16px;
   border: 1px solid rgba(122, 90, 34, 0.26);
@@ -625,6 +611,88 @@ input:disabled {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.026), transparent),
     rgba(5, 6, 7, 0.36);
+}
+
+.entry-world {
+  align-self: flex-start;
+}
+
+.entry-streaming {
+  border-color: rgba(213, 168, 74, 0.52);
+  box-shadow:
+    inset 0 0 24px rgba(213, 168, 74, 0.05),
+    0 0 24px rgba(214, 214, 190, 0.08);
+}
+
+.entry-streaming::after {
+  content: "";
+  display: inline-block;
+  width: 0.52em;
+  height: 1.15em;
+  margin-left: 4px;
+  border-right: 1px solid rgba(232, 220, 194, 0.84);
+  vertical-align: -0.18em;
+  animation: cursor-flicker 900ms steps(2, end) infinite;
+}
+
+.smoke-particles {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  width: 96px;
+  height: 54px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.86;
+}
+
+.smoke-particles span {
+  position: absolute;
+  bottom: 0;
+  left: var(--smoke-left, 48%);
+  width: var(--smoke-size, 18px);
+  height: var(--smoke-size, 18px);
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(232, 220, 194, 0.34), rgba(168, 154, 125, 0.1) 48%, transparent 70%);
+  filter: blur(5px);
+  transform: translate3d(0, 22px, 0) scale(0.4);
+  animation: smoke-rise var(--smoke-speed, 2.4s) ease-out infinite;
+  animation-delay: var(--smoke-delay, 0s);
+}
+
+.smoke-particles span:nth-child(1) {
+  --smoke-left: 18%;
+  --smoke-size: 16px;
+  --smoke-speed: 2.1s;
+}
+
+.smoke-particles span:nth-child(2) {
+  --smoke-left: 38%;
+  --smoke-size: 24px;
+  --smoke-speed: 2.8s;
+  --smoke-delay: -0.9s;
+}
+
+.smoke-particles span:nth-child(3) {
+  --smoke-left: 58%;
+  --smoke-size: 18px;
+  --smoke-speed: 2.4s;
+  --smoke-delay: -1.5s;
+}
+
+.smoke-particles span:nth-child(4) {
+  --smoke-left: 76%;
+  --smoke-size: 22px;
+  --smoke-speed: 3s;
+  --smoke-delay: -0.35s;
+}
+
+.smoke-particles span:nth-child(5) {
+  --smoke-left: 49%;
+  --smoke-size: 14px;
+  --smoke-speed: 2.2s;
+  --smoke-delay: -2s;
 }
 
 .narrative-entry p {
@@ -670,6 +738,34 @@ input:disabled {
 .spoken-line {
   color: #f0d181 !important;
   font-style: italic;
+}
+
+@keyframes smoke-rise {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 22px, 0) scale(0.35);
+  }
+
+  18% {
+    opacity: 0.72;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--smoke-drift, -14px), -44px, 0) scale(1.5);
+  }
+}
+
+@keyframes cursor-flicker {
+  0%,
+  45% {
+    opacity: 1;
+  }
+
+  46%,
+  100% {
+    opacity: 0;
+  }
 }
 
 .command-form {
@@ -1110,18 +1206,8 @@ input:disabled {
     min-height: 0;
   }
 
-  .top-actions {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .save-actions {
-    width: 100%;
-    flex-wrap: wrap;
-  }
-
-  .save-actions button {
-    flex: 1 1 128px;
+  .campaign-controls {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .left-column.active,

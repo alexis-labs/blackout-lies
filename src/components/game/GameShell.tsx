@@ -1,21 +1,11 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  Backpack,
-  BookMarked,
-  Crown,
-  Map,
-  RotateCcw,
-  Save,
-  ScrollText,
-  Settings,
-  Sparkles,
-  Upload,
-} from "lucide-react";
+import { Crown, Map, ScrollText, Sparkles } from "lucide-react";
 import { useEffect } from "react";
 import { CharacterPanel } from "@/components/game/CharacterPanel";
 import { CommandInput } from "@/components/game/CommandInput";
+import { GameControls } from "@/components/game/GameControls";
 import { InventoryPanel } from "@/components/game/InventoryPanel";
 import { NarrativePanel } from "@/components/game/NarrativePanel";
 import { RightWorldPanel } from "@/components/game/RightWorldPanel";
@@ -82,24 +72,13 @@ export function GameShell() {
         >
           <CharacterPanel player={player} />
           <InventoryPanel items={player.inventory} />
-          <footer className="sidebar-footer">
-            <button type="button" onClick={() => setActiveView("hero")}>
-              <Backpack size={16} />
-              Inventário
-            </button>
-            <button type="button" onClick={() => setActiveView("world")}>
-              <BookMarked size={16} />
-              Diário
-            </button>
-            <button type="button" onClick={() => setActiveView("world")}>
-              <Map size={16} />
-              Mapa
-            </button>
-            <button type="button" onClick={() => setActiveView("story")}>
-              <Settings size={16} />
-              Definições
-            </button>
-          </footer>
+          <GameControls
+            disabled={isProcessing}
+            onNewGame={newGame}
+            onSaveGame={saveGame}
+            onLoadGame={loadGame}
+            onResetGame={resetGame}
+          />
         </aside>
 
         <section
@@ -107,27 +86,6 @@ export function GameShell() {
             activeView === "story" ? "active" : ""
           }`}
         >
-          <header className="top-actions">
-            <div className="save-actions">
-              <button type="button" onClick={newGame}>
-                <Sparkles size={15} />
-                Novo Jogo
-              </button>
-              <button type="button" onClick={saveGame}>
-                <Save size={15} />
-                Guardar
-              </button>
-              <button type="button" onClick={loadGame}>
-                <Upload size={15} />
-                Carregar
-              </button>
-              <button type="button" onClick={resetGame}>
-                <RotateCcw size={15} />
-                Reset
-              </button>
-            </div>
-          </header>
-
           <NarrativePanel location={location} history={history} />
           <CommandInput disabled={isProcessing} onSubmit={submitAction} />
         </section>

@@ -51,6 +51,15 @@ const clamp = (value: number, min: number, max: number) =>
 const makeId = (prefix: string) =>
   `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+const wait = (milliseconds: number) =>
+  new Promise((resolve) => {
+    window.setTimeout(resolve, milliseconds);
+  });
+
+function shouldReduceMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
 function mergeInventory(
   inventory: InventoryItem[],
   add?: InventoryItem[],
@@ -267,6 +276,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
         world: state.world,
       });
 
+      const worldEntryId = makeId("world");
+      const narration = response.narration.trim();
+      let completionFeedback: GameFeedback | undefined;
+
       set((current) => {
         const { inventory, addedNames } = mergeInventory(
           current.player.inventory,
@@ -311,12 +324,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
             : current.locations;
 
         const worldEntry: NarrativeEntry = {
-          id: makeId("world"),
+          id: worldEntryId,
           type: "world",
-          text: response.narration,
+          text: shouldReduceMotion() ? narration : "",
+          isStreaming: !shouldReduceMotion(),
           locationId: nextLocationId,
           createdAt: new Date().toISOString(),
         };
+
+        completionFeedback = feedbackFor(
+          response,
+          addedNames,
+          experience.leveledUp,
+        );
 
         return {
           player: experience.player,
@@ -325,10 +345,41 @@ export const useGameStore = create<GameStore>((set, get) => ({
           world: buildWorld(current.world, response),
           narrativeHistory: [...current.narrativeHistory, worldEntry],
           suggestedActions: response.suggestedActions,
-          isProcessing: false,
-          feedback: feedbackFor(response, addedNames, experience.leveledUp),
+          isProcessing: shouldReduceMotion() ? false : true,
+          feedback: shouldReduceMotion() ? completionFeedback : undefined,
         };
       });
+
+      if (!shouldReduceMotion()) {
+        const chunkSize = narration.length > 620 ? 7 : 4;
+
+        for (let index = chunkSize; index <= narration.length + chunkSize; index += chunkSize) {
+          const nextText = narration.slice(0, index);
+
+          set((current) => ({
+            narrativeHistory: current.narrativeHistory.map((entry) =>
+              entry.id === worldEntryId
+                ? {
+                    ...entry,
+                    text: nextText,
+                    isStreaming: nextText.length < narration.length,
+                  }
+                : entry,
+            ),
+          }));
+
+          if (nextText.length >= narration.length) {
+            break;
+          }
+
+          await wait(18);
+        }
+
+        set({
+          isProcessing: false,
+          feedback: completionFeedback,
+        });
+      }
     } catch {
       const systemEntry: NarrativeEntry = {
         id: makeId("system"),

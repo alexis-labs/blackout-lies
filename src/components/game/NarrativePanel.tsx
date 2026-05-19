@@ -19,7 +19,7 @@ export function NarrativePanel({ location, history }: NarrativePanelProps) {
       top: scrollRef.current.scrollHeight,
       behavior: "smooth",
     });
-  }, [history.length]);
+  }, [history]);
 
   return (
     <OrnateFrame className="narrative-frame" contentClassName="narrative-content">
@@ -51,7 +51,9 @@ export function NarrativePanel({ location, history }: NarrativePanelProps) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.28, ease: "easeOut" }}
-              className={`narrative-entry entry-${entry.type}`}
+              className={`narrative-entry entry-${entry.type}${
+                entry.isStreaming ? " entry-streaming" : ""
+              }`}
             >
               {entry.type === "player" ? (
                 <>
@@ -68,6 +70,15 @@ export function NarrativePanel({ location, history }: NarrativePanelProps) {
                   </p>
                 ))
               )}
+              {entry.isStreaming ? (
+                <div className="smoke-particles" aria-hidden="true">
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                  <span />
+                </div>
+              ) : null}
             </motion.article>
           ))}
         </AnimatePresence>

@@ -43,7 +43,7 @@ A app funciona offline com mock local. Para usar um LLM real, cria `.env.local` 
 ```bash
 LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-proj-your-key
-OPENAI_MODEL=gpt-5.2
+OPENAI_MODEL=gpt-5.4-nano
 OPENAI_BASE_URL=https://api.openai.com/v1
 ```
 

@@ -13,7 +13,7 @@ type OpenAIResponse = {
 
 const OPENAI_BASE_URL =
   process.env.OPENAI_BASE_URL?.replace(/\/$/, "") ?? "https://api.openai.com/v1";
-const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-5.2";
+const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-5.4-nano";
 
 const responseSchema = {
   type: "object",
