@@ -26,8 +26,8 @@ export function SuspectSelector({
         disabled={disabled}
         onMouseEnter={() => play("buttonHover")}
         onChange={(event) => {
-          play("tabSwitch");
           onChange(event.target.value);
+          play("tabSwitch");
         }}
       >
         {suspects.map((suspect) => (

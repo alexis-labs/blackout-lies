@@ -28,8 +28,8 @@ export function SuggestedQuestions({
               type="button"
               onMouseEnter={() => play("buttonHover")}
               onClick={() => {
-                play("buttonClick");
                 onSelectQuestion(question);
+                play("buttonClick");
               }}
             >
               {question}

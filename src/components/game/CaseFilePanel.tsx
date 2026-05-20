@@ -20,25 +20,13 @@ type CaseFilePanelProps = {
   onTabChange: (tab: CaseFileTab) => void;
 };
 
-const normalize = (value: string) =>
-  value
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-
 function isConfessionComplete(
   confession: SuspectConfession,
   interrogationState: InterrogationState,
 ) {
-  const answerText = normalize(
-    interrogationState.history.map((entry) => entry.answer).join(" "),
+  return (
+    interrogationState.completedConfessionIds?.includes(confession.id) ?? false
   );
-  const matchers = [
-    confession.confession,
-    ...(confession.matchers ?? []),
-  ].map(normalize);
-
-  return matchers.some((matcher) => answerText.includes(matcher));
 }
 
 function SuspectPortrait({
@@ -126,6 +114,9 @@ function CaseTabContent({
   );
   const hasTopic = (topic: string) =>
     topics.some((coveredTopic) => coveredTopic === topic.toLowerCase());
+  const caseStatus = interrogationState.caseClosed
+    ? "CLOSED"
+    : suspect.caseContext.status;
 
   return (
     <section className="case-tab-content" aria-label="Case file">
@@ -135,7 +126,7 @@ function CaseTabContent({
           CASE #: <strong>{suspect.caseContext.caseId}</strong>
         </p>
         <p>
-          STATUS: <strong>{suspect.caseContext.status}</strong>
+          STATUS: <strong>{caseStatus}</strong>
         </p>
       </header>
 
@@ -244,6 +235,9 @@ function NotesTab({
           <li>
             Confession status:{" "}
             {interrogationState.confessionUnlocked ? "Unlocked" : "Locked"}
+          </li>
+          <li>
+            Case status: {interrogationState.caseClosed ? "Closed" : "Open"}
           </li>
         </ul>
       </div>

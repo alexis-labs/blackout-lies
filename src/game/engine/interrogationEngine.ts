@@ -1,4 +1,3 @@
-import { buildSuspectPrompt } from "@/game/prompts/buildSuspectPrompt";
 import type {
   InterrogationState,
   SuspectId,
@@ -11,15 +10,19 @@ type AskSuspectParams = {
   question: string;
 };
 
-export type SuspectLLMPayload = {
-  systemPrompt: string;
-  userMessage: string;
-  metadata: {
-    suspectId: SuspectId;
-    caseId: string;
-    interrogationState: InterrogationState;
-  };
+type InterrogateApiResponse = {
+  answer?: string;
+  error?: string;
 };
+
+class InterrogateApiError extends Error {
+  constructor(
+    message: string,
+    readonly status: number,
+  ) {
+    super(message);
+  }
+}
 
 const wait = (milliseconds: number) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -47,22 +50,8 @@ export function createInitialInterrogationState(
     contradictionsFound: [],
     pressureLevel: 0,
     confessionUnlocked: false,
-  };
-}
-
-export function buildSuspectLLMPayload({
-  suspect,
-  interrogationState,
-  question,
-}: AskSuspectParams): SuspectLLMPayload {
-  return {
-    systemPrompt: buildSuspectPrompt(suspect, interrogationState),
-    userMessage: question,
-    metadata: {
-      suspectId: suspect.id,
-      caseId: suspect.caseContext.caseId,
-      interrogationState,
-    },
+    completedConfessionIds: [],
+    caseClosed: false,
   };
 }
 
@@ -197,6 +186,52 @@ function requirementIsMet(
   );
 }
 
+type ChecklistConfession = NonNullable<
+  SuspectProfile["confessionChecklist"][number]
+>;
+
+function confessionIsAdmitted(
+  text: string,
+  confession: ChecklistConfession,
+) {
+  const normalizedText = normalize(text);
+  const matchers = [confession.confession, ...(confession.matchers ?? [])];
+
+  return matchers.some((matcher) => normalizedText.includes(normalize(matcher)));
+}
+
+function findCompletedConfessionIds(
+  state: InterrogationState,
+  suspect: SuspectProfile,
+  answer: string,
+) {
+  const previousAnswerText = state.history.map((entry) => entry.answer).join(" ");
+  const answerText = `${previousAnswerText} ${answer}`;
+  const existingIds = state.completedConfessionIds ?? [];
+  const admittedIds = suspect.confessionChecklist
+    .slice(0, 5)
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .filter((item) => confessionIsAdmitted(answerText, item))
+    .map((item) => item.id);
+
+  return unique([...existingIds, ...admittedIds]);
+}
+
+function hasCompletedChecklist(
+  suspect: SuspectProfile,
+  completedConfessionIds: string[],
+) {
+  const checklistIds = suspect.confessionChecklist
+    .slice(0, 5)
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .map((item) => item.id);
+
+  return (
+    checklistIds.length > 0 &&
+    checklistIds.every((id) => completedConfessionIds.includes(id))
+  );
+}
+
 export function updateInterrogationProgress(
   state: InterrogationState,
   suspect: SuspectProfile,
@@ -220,6 +255,12 @@ export function updateInterrogationProgress(
     suspect.interrogationRules.confessionRequires.every((requirement) =>
       requirementIsMet(requirement, topicsCovered, contradictionsFound),
     );
+  const completedConfessionIds = findCompletedConfessionIds(
+    state,
+    suspect,
+    answer,
+  );
+  const caseClosed = hasCompletedChecklist(suspect, completedConfessionIds);
 
   return {
     ...state,
@@ -228,10 +269,12 @@ export function updateInterrogationProgress(
     contradictionsFound,
     pressureLevel,
     confessionUnlocked,
+    completedConfessionIds,
+    caseClosed,
   };
 }
 
-function mockSuspectResponse({
+export function mockSuspectResponse({
   suspect,
   interrogationState,
   question,
@@ -295,18 +338,43 @@ function mockSuspectResponse({
   );
 }
 
-async function askExistingLLMEngine(
-  payload: SuspectLLMPayload,
-  params: AskSuspectParams,
-) {
-  await wait(320);
+async function askConfiguredLLMEngine(params: AskSuspectParams) {
+  const response = await fetch("/api/interrogate", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      suspectId: params.suspect.id,
+      interrogationState: params.interrogationState,
+      question: params.question,
+    }),
+  });
 
-  void payload;
-  return mockSuspectResponse(params);
+  const data = (await response.json().catch(() => null)) as
+    | InterrogateApiResponse
+    | null;
+
+  if (!response.ok || !data?.answer) {
+    throw new InterrogateApiError(
+      data?.error ?? "Unable to generate suspect answer.",
+      response.status,
+    );
+  }
+
+  return data.answer;
 }
 
 export async function askSuspect(params: AskSuspectParams): Promise<string> {
-  const payload = buildSuspectLLMPayload(params);
+  try {
+    return await askConfiguredLLMEngine(params);
+  } catch (error) {
+    if (error instanceof InterrogateApiError) {
+      throw error;
+    }
 
-  return askExistingLLMEngine(payload, params);
+    await wait(320);
+
+    return mockSuspectResponse(params);
+  }
 }

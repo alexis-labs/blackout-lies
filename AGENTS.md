@@ -2,7 +2,7 @@
 
 ## Project
 
-This is a Next.js + TypeScript fantasy LLM text-adventure game.
+This is a Next.js + TypeScript noir interrogation game.
 
 ## Commands
 
@@ -14,11 +14,11 @@ This is a Next.js + TypeScript fantasy LLM text-adventure game.
 ## Rules
 
 - Keep components modular.
-- Use TypeScript types from src/lib/gameTypes.ts.
-- Keep game content in src/lib/gameData.ts.
-- Keep narrative logic in src/lib/narrativeEngine.ts.
-- Keep server-side LLM provider logic in src/lib/llmServer.ts.
+- Use TypeScript types from src/game/types/.
+- Keep suspect and case content in src/game/suspects/.
+- Keep interrogation logic in src/game/engine/interrogationEngine.ts.
+- Keep prompt construction in src/game/prompts/.
 - Do not hardcode large game state inside React components.
 - Do not add external services unless explicitly requested.
 - Never commit .env.local or API keys.
-- Maintain the dark fantasy ornate UI style.
+- Maintain the noir pixel art interrogation UI style.

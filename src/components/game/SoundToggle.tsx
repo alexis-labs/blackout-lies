@@ -27,8 +27,8 @@ export function SoundToggle({
         aria-pressed={enabled}
         onMouseEnter={() => play("buttonHover")}
         onClick={() => {
-          play("buttonClick");
           onToggle();
+          play("buttonClick");
         }}
       >
         <Icon size={16} strokeWidth={2.2} aria-hidden="true" />

@@ -87,4 +87,6 @@ export type InterrogationState = {
   contradictionsFound: string[];
   pressureLevel: number;
   confessionUnlocked: boolean;
+  completedConfessionIds: string[];
+  caseClosed: boolean;
 };

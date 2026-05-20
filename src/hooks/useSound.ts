@@ -59,22 +59,38 @@ export function useSound() {
   }, []);
 
   const play = useCallback((sound: SoundName) => {
-    audioManager.play(sound);
+    try {
+      audioManager.play(sound);
+    } catch {
+      // Audio should never block gameplay controls.
+    }
   }, []);
 
   const playDialogueBlip = useCallback(
     (character?: string, voice?: SuspectVoiceProfile) => {
-      audioManager.playDialogueBlip(character, voice);
+      try {
+        audioManager.playDialogueBlip(character, voice);
+      } catch {
+        // Audio should never block text rendering.
+      }
     },
     [],
   );
 
   const startThinkingLoop = useCallback(() => {
-    audioManager.startThinkingLoop();
+    try {
+      audioManager.startThinkingLoop();
+    } catch {
+      // Audio should never block gameplay controls.
+    }
   }, []);
 
   const stopThinkingLoop = useCallback(() => {
-    audioManager.stopThinkingLoop();
+    try {
+      audioManager.stopThinkingLoop();
+    } catch {
+      // Audio should never block gameplay controls.
+    }
   }, []);
 
   return {

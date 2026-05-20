@@ -51,8 +51,8 @@ export function InputBar({
         aria-pressed={isFileOpen}
         onMouseEnter={() => play("buttonHover")}
         onClick={() => {
-          play(isFileOpen ? "fileClose" : "fileOpen");
           onToggleFile();
+          play(isFileOpen ? "fileClose" : "fileOpen");
         }}
       >
         <Folder size={17} strokeWidth={2.2} aria-hidden="true" />

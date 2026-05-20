@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { CaseFilePanel } from "@/components/game/CaseFilePanel";
 import { InputBar } from "@/components/game/InputBar";
 import { PressureBar } from "@/components/game/PressureBar";
@@ -65,17 +65,29 @@ const makeInitialSuspectMessages = () =>
     ]),
   ) as Record<SuspectId, string>;
 
-const initialGameState: InterrogationGameState = {
-  activeFileTab: "case",
-  input: "",
-  isFileOpen: true,
-  activeSuspectId: defaultSuspectId,
-  interrogationStates: makeInitialInterrogationStates(),
-  suspectMessages: makeInitialSuspectMessages(),
-  status: "idle",
-  inputErrorKey: 0,
-  pendingQuestion: undefined,
-};
+const MOBILE_CASE_FILE_QUERY = "(max-width: 980px)";
+
+function shouldOpenCaseFileByDefault() {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  return !window.matchMedia(MOBILE_CASE_FILE_QUERY).matches;
+}
+
+function createInitialGameState(): InterrogationGameState {
+  return {
+    activeFileTab: "case",
+    input: "",
+    isFileOpen: shouldOpenCaseFileByDefault(),
+    activeSuspectId: defaultSuspectId,
+    interrogationStates: makeInitialInterrogationStates(),
+    suspectMessages: makeInitialSuspectMessages(),
+    status: "idle",
+    inputErrorKey: 0,
+    pendingQuestion: undefined,
+  };
+}
 
 const makeDialogueId = () =>
   `dialogue-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -87,7 +99,9 @@ const formatTimestamp = () =>
   });
 
 export function GameScreen() {
-  const [game, setGame] = useState<InterrogationGameState>(initialGameState);
+  const [game, setGame] = useState<InterrogationGameState>(
+    createInitialGameState,
+  );
   const {
     enabled: soundEnabled,
     play,
@@ -112,6 +126,14 @@ export function GameScreen() {
       ? game.pendingQuestion.text
       : undefined;
   const isBusy = game.status === "thinking" || game.status === "typing";
+  const isCaseClosed = activeInterrogationState.caseClosed;
+
+  useLayoutEffect(() => {
+    setGame((current) => ({
+      ...current,
+      isFileOpen: shouldOpenCaseFileByDefault(),
+    }));
+  }, []);
 
   function updateInput(input: string) {
     setGame((current) => ({ ...current, input }));
@@ -167,7 +189,7 @@ export function GameScreen() {
       return;
     }
 
-    if (isBusy) {
+    if (isBusy || interrogationState.caseClosed) {
       return;
     }
 
@@ -209,6 +231,9 @@ export function GameScreen() {
 
         return {
           ...current,
+          activeFileTab: progressedState.caseClosed
+            ? "case"
+            : current.activeFileTab,
           interrogationStates: {
             ...current.interrogationStates,
             [suspect.id]: {
@@ -315,7 +340,7 @@ export function GameScreen() {
           isFileOpen={game.isFileOpen}
           hasError={game.status === "error"}
           key={`input-${game.inputErrorKey}`}
-          disabled={isBusy}
+          disabled={isBusy || isCaseClosed}
           isThinking={game.status === "thinking"}
           onInputChange={updateInput}
           onSubmit={submitQuestion}

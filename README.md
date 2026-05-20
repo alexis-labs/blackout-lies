@@ -1,8 +1,8 @@
-# Echoes of the Hollow Crown
+# The Laughing Cat Caper
 
-**Echoes of the Hollow Crown** é um browser game de aventura textual dark fantasy, preparado para LLM, mas funcional offline com um motor narrativo mock local.
+**The Laughing Cat Caper** e um browser game de interrogatorio noir em pixel art, preparado para respostas LLM e funcional offline com um motor local de suspeitos.
 
-O jogador explora zonas, escreve ações em linguagem natural, escolhe ações sugeridas, ganha XP, sobe de nível, recolhe itens, consulta diário/mapa e guarda o progresso localmente.
+O jogador conduz interrogatorios, alterna entre suspeitos, consulta o ficheiro do caso, segue o historico de perguntas, pressiona contradicoes e tenta desbloquear confissoes.
 
 ## Stack
 
@@ -10,10 +10,9 @@ O jogador explora zonas, escreve ações em linguagem natural, escolhe ações s
 - React 19
 - TypeScript
 - Tailwind CSS
-- Zustand
 - Framer Motion
 - Lucide React
-- IndexedDB com fallback para localStorage
+- Audio API do browser
 
 ## Instalar
 
@@ -36,23 +35,18 @@ npm run typecheck
 npm run build
 ```
 
-## Configurar LLM real
+## Configurar OpenAI
 
-A app funciona offline com mock local. Para usar um LLM real, cria `.env.local` a partir de `.env.example`:
+O jogo funciona offline com respostas mock. Para usar OpenAI, cria `.env.local` a partir de `.env.example`:
 
 ```bash
 LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-proj-your-key
-OPENAI_MODEL=gpt-5.4-nano
+OPENAI_MODEL=gpt-5.4-mini
 OPENAI_BASE_URL=https://api.openai.com/v1
 ```
 
-Se `LLM_PROVIDER=mock` ou se não existir `OPENAI_API_KEY`, o endpoint volta ao motor local.
-
-- `src/lib/narrativeEngine.ts` contém o motor narrativo local.
-- `src/lib/llmClient.ts` expõe `mockLLMResponse()` e `realLLMResponse()`.
-- `src/lib/llmServer.ts` faz a chamada server-side ao LLM configurado.
-- `src/app/api/chat/route.ts` recebe estado do jogo + input do jogador e retorna `NarrativeResponse`.
+As chamadas ao LLM passam por `src/app/api/interrogate/route.ts`, por isso a API key fica apenas no servidor. Se `LLM_PROVIDER` nao for `openai` ou faltar `OPENAI_API_KEY`, o jogo volta ao motor mock local.
 
 ## Estrutura
 
@@ -62,44 +56,37 @@ src/
     page.tsx
     layout.tsx
     globals.css
-    api/chat/route.ts
+    api/interrogate/route.ts
+  audio/
+    AudioManager.ts
+    sfx.ts
   components/game/
-    GameShell.tsx
-    CharacterPanel.tsx
-    InventoryPanel.tsx
-    AttributesPanel.tsx
-    NarrativePanel.tsx
-    ActionButtons.tsx
-    CommandInput.tsx
-    RightWorldPanel.tsx
-    StatusBar.tsx
-    OrnateFrame.tsx
-    MiniMap.tsx
-    JournalPanel.tsx
-  lib/
-    gameTypes.ts
-    gameData.ts
-    narrativeEngine.ts
-    llmClient.ts
-    llmServer.ts
-    storage.ts
-  store/
-    gameStore.ts
-  styles/
-    theme.ts
-AGENTS.md
-README.md
+    CaseFilePanel.tsx
+    CaseFileTabs.tsx
+    DialogueHistory.tsx
+    GameScreen.tsx
+    InputBar.tsx
+    PressureBar.tsx
+    SoundToggle.tsx
+    SpeechBubble.tsx
+    SuggestedQuestions.tsx
+    SuspectBackground.tsx
+    SuspectSelector.tsx
+    TipBar.tsx
+  game/
+    engine/interrogationEngine.ts
+    engine/interrogationServer.ts
+    prompts/
+    suspects/
+    types/
 ```
 
 ## Gameplay implementado
 
-- Sistema de personagem, atributos e vitais
-- Inventário com itens e quantidades
-- XP, level up e feedback visual
-- Localizações desbloqueáveis
-- Histórico narrativo com ações do jogador
-- Input livre de texto
-- Motor narrativo mock para comandos comuns
-- Endpoint LLM real configurável por `.env.local`
-- Guardar, carregar, novo jogo e reset local
-- UI responsiva compacta com layout desktop em três zonas e tabs em mobile
+- Interrogatorio por input livre
+- Dois suspeitos jogaveis com perfis, segredos e contradicoes
+- Ficheiro do caso com separadores de caso, historico e notas
+- Barra de pressao e progressao por topicos investigados
+- Perguntas sugeridas por suspeito
+- Feedback sonoro com controlo de volume
+- Layout responsivo em estilo noir pixel art
