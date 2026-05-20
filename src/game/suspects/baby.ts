@@ -2,8 +2,8 @@ import type { SuspectProfile } from "@/game/types/suspect";
 
 export const baby: SuspectProfile = {
   id: "baby",
-  displayName: 'Baby',
-  shortName: "Baby",
+  displayName: 'Victoria "Black Cat" Velasco',
+  shortName: "Victoria Velasco",
   nickname: "Baby",
   age: 42,
   occupation: '"Entrepreneur"',
