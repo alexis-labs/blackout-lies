@@ -1,10 +1,12 @@
 import { mariaBlackCat } from "@/game/suspects/maria-black-cat";
 import { vinnieGrinMarino } from "@/game/suspects/vinnie-grin-marino";
+import { baby } from "@/game/suspects/baby";
 import type { SuspectProfile } from "@/game/types/suspect";
 
 export const suspects = {
   [vinnieGrinMarino.id]: vinnieGrinMarino,
   [mariaBlackCat.id]: mariaBlackCat,
+  [baby.id]: baby,
 };
 
 export type RegisteredSuspectId = keyof typeof suspects;
