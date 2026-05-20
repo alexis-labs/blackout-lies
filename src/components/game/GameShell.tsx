@@ -9,15 +9,18 @@ export function GameShell() {
   const [hasStarted, setHasStarted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  if (hasStarted) {
-    return <GameScreen />;
-  }
-
   return (
     <>
-      <StartScreen onStart={() => setIsTransitioning(true)} />
+      {hasStarted ? (
+        <GameScreen />
+      ) : (
+        <StartScreen onStart={() => setIsTransitioning(true)} />
+      )}
       {isTransitioning ? (
-        <PageTransition onComplete={() => setHasStarted(true)} />
+        <PageTransition
+          onCover={() => setHasStarted(true)}
+          onComplete={() => setIsTransitioning(false)}
+        />
       ) : null}
     </>
   );

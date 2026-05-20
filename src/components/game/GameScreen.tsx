@@ -171,7 +171,7 @@ export function GameScreen() {
     setTransitioningSuspectId(suspectId);
   }
 
-  function completeSuspectTransition() {
+  function revealSuspectTransition() {
     const nextSuspectId = transitioningSuspectId;
 
     if (!nextSuspectId || !getSuspectById(nextSuspectId)) {
@@ -186,6 +186,9 @@ export function GameScreen() {
       input: "",
       status: current.status === "thinking" ? current.status : "idle",
     }));
+  }
+
+  function completeSuspectTransition() {
     setTransitioningSuspectId(undefined);
   }
 
@@ -369,7 +372,10 @@ export function GameScreen() {
       </div>
 
       {isSuspectTransitioning ? (
-        <PageTransition onComplete={completeSuspectTransition} />
+        <PageTransition
+          onCover={revealSuspectTransition}
+          onComplete={completeSuspectTransition}
+        />
       ) : null}
     </main>
   );

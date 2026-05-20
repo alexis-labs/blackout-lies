@@ -206,7 +206,7 @@ select:disabled {
   position: fixed;
   inset: 0;
   z-index: 80;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .page-transition canvas {

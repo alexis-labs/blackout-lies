@@ -4,14 +4,21 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 type PageTransitionProps = {
+  onCover?: () => void;
   onComplete: () => void;
 };
 
 const TRANSITION_DURATION_MS = 1150;
+const COVER_PROGRESS = 0.42;
 
-export function PageTransition({ onComplete }: PageTransitionProps) {
+export function PageTransition({ onCover, onComplete }: PageTransitionProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const onCoverRef = useRef(onCover);
   const onCompleteRef = useRef(onComplete);
+
+  useEffect(() => {
+    onCoverRef.current = onCover;
+  }, [onCover]);
 
   useEffect(() => {
     onCompleteRef.current = onComplete;
@@ -86,6 +93,7 @@ export function PageTransition({ onComplete }: PageTransitionProps) {
     scene.add(mesh);
 
     let animationFrame = 0;
+    let hasCovered = false;
     let isComplete = false;
     const startedAt = performance.now();
 
@@ -101,6 +109,11 @@ export function PageTransition({ onComplete }: PageTransitionProps) {
       const progress = Math.min((now - startedAt) / TRANSITION_DURATION_MS, 1);
       uniforms.uProgress.value = progress;
       renderer.render(scene, camera);
+
+      if (!hasCovered && progress >= COVER_PROGRESS) {
+        hasCovered = true;
+        onCoverRef.current?.();
+      }
 
       if (progress < 1) {
         animationFrame = window.requestAnimationFrame(animate);
