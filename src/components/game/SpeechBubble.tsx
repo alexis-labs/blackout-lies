@@ -1,7 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useCallback } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { SuspectVoiceProfile } from "@/game/types/suspect";
 import { useSound } from "@/hooks/useSound";
 import { useTypewriter } from "@/hooks/useTypewriter";
@@ -21,6 +21,7 @@ export function SpeechBubble({
   typewriterEnabled = true,
   onTypingComplete,
 }: SpeechBubbleProps) {
+  const bubbleRef = useRef<HTMLDivElement | null>(null);
   const { playDialogueBlip } = useSound();
   const handleChar = useCallback(
     (character: string, index: number) => {
@@ -37,8 +38,30 @@ export function SpeechBubble({
   });
   const displayText = isThinking ? "..." : visibleText;
 
+  useEffect(() => {
+    if (isThinking) {
+      return;
+    }
+
+    const bubble = bubbleRef.current;
+    if (!bubble) {
+      return;
+    }
+
+    const hasOverflow = bubble.scrollHeight > bubble.clientHeight + 2;
+    if (!hasOverflow) {
+      return;
+    }
+
+    bubble.scrollTo({
+      top: bubble.scrollHeight,
+      behavior: "smooth",
+    });
+  }, [displayText, isThinking]);
+
   return (
     <div
+      ref={bubbleRef}
       className={`speech-bubble ${isThinking ? "thinking" : ""} ${
         isTyping ? "typing" : ""
       }`}
