@@ -9,7 +9,6 @@ import { SuggestedQuestions } from "@/components/game/SuggestedQuestions";
 import { SoundToggle } from "@/components/game/SoundToggle";
 import { SuspectBackground } from "@/components/game/SuspectBackground";
 import { SuspectSelector } from "@/components/game/SuspectSelector";
-import { TipBar } from "@/components/game/TipBar";
 import {
   askSuspect,
   createInitialInterrogationState,
@@ -316,8 +315,6 @@ export function GameScreen() {
       />
 
       <section className="suspect-stage" aria-label="Suspect interrogation area">
-        <PressureBar pressureLevel={activeInterrogationState.pressureLevel} />
-
         <SpeechBubble
           text={currentSuspectMessage}
           voice={activeSuspect.voice}
@@ -347,7 +344,8 @@ export function GameScreen() {
           onSubmit={submitQuestion}
           onToggleFile={toggleFile}
         />
-        <TipBar />
+
+        <PressureBar pressureLevel={activeInterrogationState.pressureLevel} />
       </div>
     </main>
   );
