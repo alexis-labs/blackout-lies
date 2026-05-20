@@ -3,6 +3,7 @@
 import { useLayoutEffect, useState } from "react";
 import { CaseFilePanel } from "@/components/game/CaseFilePanel";
 import { InputBar } from "@/components/game/InputBar";
+import { PageTransition } from "@/components/game/PageTransition";
 import { PressureBar } from "@/components/game/PressureBar";
 import { SpeechBubble } from "@/components/game/SpeechBubble";
 import { SuggestedQuestions } from "@/components/game/SuggestedQuestions";
@@ -102,6 +103,8 @@ export function GameScreen() {
   const [game, setGame] = useState<InterrogationGameState>(
     createInitialGameState,
   );
+  const [transitioningSuspectId, setTransitioningSuspectId] =
+    useState<SuspectId>();
   const {
     enabled: soundEnabled,
     play,
@@ -126,6 +129,7 @@ export function GameScreen() {
       ? game.pendingQuestion.text
       : undefined;
   const isBusy = game.status === "thinking" || game.status === "typing";
+  const isSuspectTransitioning = Boolean(transitioningSuspectId);
   const isCaseClosed = activeInterrogationState.caseClosed;
 
   useLayoutEffect(() => {
@@ -156,17 +160,33 @@ export function GameScreen() {
   }
 
   function setActiveSuspectId(suspectId: SuspectId) {
-    if (!getSuspectById(suspectId)) {
+    if (
+      !getSuspectById(suspectId) ||
+      suspectId === game.activeSuspectId ||
+      isSuspectTransitioning
+    ) {
+      return;
+    }
+
+    setTransitioningSuspectId(suspectId);
+  }
+
+  function completeSuspectTransition() {
+    const nextSuspectId = transitioningSuspectId;
+
+    if (!nextSuspectId || !getSuspectById(nextSuspectId)) {
+      setTransitioningSuspectId(undefined);
       return;
     }
 
     setGame((current) => ({
       ...current,
-      activeSuspectId: suspectId,
+      activeSuspectId: nextSuspectId,
       activeFileTab: "case",
       input: "",
       status: current.status === "thinking" ? current.status : "idle",
     }));
+    setTransitioningSuspectId(undefined);
   }
 
   async function submitQuestion() {
@@ -293,7 +313,7 @@ export function GameScreen() {
         <SuspectSelector
           suspects={allSuspects}
           activeSuspectId={activeSuspect.id}
-          disabled={game.status === "thinking"}
+          disabled={game.status === "thinking" || isSuspectTransitioning}
           onChange={setActiveSuspectId}
         />
 
@@ -347,6 +367,10 @@ export function GameScreen() {
 
         <PressureBar pressureLevel={activeInterrogationState.pressureLevel} />
       </div>
+
+      {isSuspectTransitioning ? (
+        <PageTransition onComplete={completeSuspectTransition} />
+      ) : null}
     </main>
   );
 }

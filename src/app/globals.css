@@ -90,16 +90,142 @@ select:disabled {
   isolation: isolate;
 }
 
+.start-screen {
+  --start-ink: #080807;
+  --start-paper: #e2c99c;
+  --start-gold: #c99645;
+  --start-green: #3f5132;
+  position: relative;
+  display: grid;
+  height: 100dvh;
+  min-height: 560px;
+  place-items: center;
+  overflow: hidden;
+  color: #f5e6c8;
+  background: #050607;
+  font-family: "Pixelify Sans", VT323, "Courier New", monospace;
+  image-rendering: pixelated;
+  isolation: isolate;
+}
+
+.start-screen::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.012) 50%, rgba(0, 0, 0, 0.018) 50%),
+    radial-gradient(circle at 50% 52%, transparent 66%, rgba(0, 0, 0, 0.24));
+  background-size: 100% 4px, 100% 100%;
+  mix-blend-mode: normal;
+  pointer-events: none;
+}
+
+.start-screen::after {
+  content: "";
+  position: fixed;
+  inset: 10px;
+  z-index: 2;
+  border: 4px solid rgba(8, 8, 7, 0.82);
+  box-shadow:
+    inset 0 0 0 2px rgba(201, 150, 69, 0.14),
+    inset 0 0 36px rgba(0, 0, 0, 0.28);
+  pointer-events: none;
+}
+
+.start-screen-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: #ffffff;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.start-screen-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(5, 6, 7, 0.04), rgba(5, 6, 7, 0.2)),
+    linear-gradient(90deg, rgba(5, 6, 7, 0.16), transparent 32%, rgba(5, 6, 7, 0.16));
+}
+
+.start-screen-panel {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  width: min(680px, calc(100vw - 32px));
+  justify-items: center;
+  margin-top: 28vh;
+  padding: clamp(28px, 5vw, 54px);
+  text-align: center;
+}
+
+.start-screen-button {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  color: #f8e7aa;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: clamp(1.05rem, 3.2vw, 2.15rem);
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-shadow:
+    4px 4px 0 #000,
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    0 0 14px rgba(248, 231, 170, 0.72);
+}
+
+.start-screen-button:hover,
+.start-screen-button:focus-visible {
+  color: #ffffff;
+  outline: 0;
+  transform: translateY(-2px);
+  text-shadow:
+    5px 5px 0 #000,
+    -2px -2px 0 #000,
+    2px -2px 0 #000,
+    -2px 2px 0 #000,
+    0 0 20px rgba(248, 231, 170, 0.96);
+}
+
+.start-screen-button:active {
+  transform: translateY(2px);
+}
+
+.page-transition {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+}
+
+.page-transition canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
 .interrogation-screen::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: 24;
   background:
-    linear-gradient(rgba(255, 255, 255, 0.025) 50%, rgba(0, 0, 0, 0.045) 50%),
-    radial-gradient(circle at 50% 52%, transparent 54%, rgba(0, 0, 0, 0.42));
+    linear-gradient(rgba(255, 255, 255, 0.01) 50%, rgba(0, 0, 0, 0.018) 50%),
+    radial-gradient(circle at 50% 52%, transparent 70%, rgba(0, 0, 0, 0.18));
   background-size: 100% 4px, 100% 100%;
-  mix-blend-mode: soft-light;
+  mix-blend-mode: normal;
   pointer-events: none;
 }
 
@@ -111,7 +237,7 @@ select:disabled {
   border: 4px solid rgba(8, 8, 7, 0.74);
   box-shadow:
     inset 0 0 0 2px rgba(201, 150, 69, 0.1),
-    inset 0 0 60px rgba(0, 0, 0, 0.46);
+    inset 0 0 32px rgba(0, 0, 0, 0.24);
   pointer-events: none;
 }
 

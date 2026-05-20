@@ -1,5 +1,5 @@
-import { GameScreen } from "@/components/game/GameScreen";
+import { GameShell } from "@/components/game/GameShell";
 
 export default function Home() {
-  return <GameScreen />;
+  return <GameShell />;
 }
