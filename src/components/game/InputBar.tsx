@@ -37,14 +37,6 @@ export function InputBar({
       className={`interrogation-input-bar ${hasError ? "input-error" : ""}`}
       onSubmit={handleSubmit}
     >
-      <input
-        aria-label="Ask a question"
-        value={input}
-        disabled={disabled}
-        onChange={(event) => onInputChange(event.target.value)}
-        placeholder="Ask a question..."
-      />
-
       <button
         type="button"
         className={`file-toggle-button ${isFileOpen ? "active" : ""}`}
@@ -58,6 +50,14 @@ export function InputBar({
         <Folder size={17} strokeWidth={2.2} aria-hidden="true" />
         FILE
       </button>
+
+      <input
+        aria-label="Ask a question"
+        value={input}
+        disabled={disabled}
+        onChange={(event) => onInputChange(event.target.value)}
+        placeholder="Ask a question..."
+      />
 
       <button
         type="submit"

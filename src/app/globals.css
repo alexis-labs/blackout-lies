@@ -907,10 +907,10 @@ select:disabled {
 
 .suggested-questions {
   display: flex;
-  width: clamp(650px, 58vw, 1080px);
+  width: clamp(430px, 44vw, 740px);
   max-width: calc(100vw - 24px);
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   overflow: hidden;
   border: 2px solid rgba(201, 150, 69, 0.42);
   border-radius: 4px;
@@ -921,7 +921,7 @@ select:disabled {
   box-shadow:
     4px 4px 0 rgba(0, 0, 0, 0.42),
     inset 1px 1px 0 rgba(255, 255, 255, 0.08);
-  padding: 6px 8px;
+  padding: 4px 6px;
   pointer-events: auto;
 }
 
@@ -929,7 +929,7 @@ select:disabled {
   flex: 0 0 auto;
   color: var(--button-gold-light);
   font-family: "Press Start 2P", "Courier New", monospace;
-  font-size: 0.46rem;
+  font-size: 0.4rem;
   letter-spacing: 0;
 }
 
@@ -938,7 +938,7 @@ select:disabled {
   flex: 1;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   min-width: 0;
-  gap: 8px;
+  gap: 6px;
   margin: 0;
   padding: 0;
   overflow: visible;
@@ -951,15 +951,15 @@ select:disabled {
 
 .suggested-questions button {
   width: 100%;
-  min-height: 44px;
+  min-height: 36px;
   overflow-wrap: anywhere;
   border: 2px solid rgba(201, 150, 69, 0.34);
   border-radius: 3px;
   color: rgba(245, 230, 200, 0.88);
   background: rgba(8, 8, 7, 0.34);
-  padding: 8px 10px;
-  font-size: clamp(0.9rem, 0.94vw, 1.08rem);
-  line-height: 1.18;
+  padding: 5px 7px;
+  font-size: clamp(0.74rem, 0.8vw, 0.9rem);
+  line-height: 1.1;
   text-align: center;
   white-space: normal;
 }
@@ -975,18 +975,18 @@ select:disabled {
 .interrogation-bottom-hud {
   position: absolute;
   right: 0;
-  bottom: 3.4vh;
+  bottom: 3vh;
   left: 0;
-  z-index: 20;
+  z-index: 13;
   display: grid;
   justify-items: center;
-  gap: 9px;
+  gap: 8px;
   pointer-events: none;
 }
 
 .interrogation-input-bar {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 108px 68px;
+  grid-template-columns: auto minmax(0, 1fr) 68px;
   gap: 9px;
   width: clamp(650px, 58vw, 1080px);
   min-height: 68px;
@@ -1078,6 +1078,9 @@ select:disabled {
 .file-toggle-button {
   background: linear-gradient(180deg, var(--button-gold-light), var(--button-gold));
   color: #160f09;
+  justify-self: start;
+  width: fit-content;
+  padding: 0 12px;
 }
 
 .file-toggle-button.active {
@@ -1281,7 +1284,7 @@ select:disabled {
   }
 
   .interrogation-input-bar {
-    grid-template-columns: minmax(0, 1fr) 82px 54px;
+    grid-template-columns: auto minmax(0, 1fr) 54px;
     min-height: 58px;
     padding: 7px;
   }

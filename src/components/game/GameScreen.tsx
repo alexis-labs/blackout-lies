@@ -79,7 +79,8 @@ function createInitialGameState(): InterrogationGameState {
   return {
     activeFileTab: "case",
     input: "",
-    isFileOpen: shouldOpenCaseFileByDefault(),
+    // Keep first render deterministic for SSR hydration.
+    isFileOpen: false,
     activeSuspectId: defaultSuspectId,
     interrogationStates: makeInitialInterrogationStates(),
     suspectMessages: makeInitialSuspectMessages(),

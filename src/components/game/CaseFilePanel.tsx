@@ -165,11 +165,6 @@ function CaseTabContent({
         </ul>
       </div>
 
-      <ConfessionChecklist
-        suspect={suspect}
-        interrogationState={interrogationState}
-      />
-
       <div className="case-progress-strip" aria-label="Interrogation state">
         <span className={hasTopic("alibi") ? "stamped" : ""}>ALIBI</span>
         <span className={hasTopic("statue") ? "stamped" : ""}>STATUE</span>
@@ -196,6 +191,24 @@ function CaseTabContent({
           value={interrogationState.pressureLevel}
         />
       </div>
+    </section>
+  );
+}
+
+function ChecklistTab({
+  suspect,
+  interrogationState,
+}: {
+  suspect: SuspectProfile;
+  interrogationState: InterrogationState;
+}) {
+  return (
+    <section className="notes-tab" aria-label="Confession checklist">
+      <h3>CONFESSION CHECKLIST</h3>
+      <ConfessionChecklist
+        suspect={suspect}
+        interrogationState={interrogationState}
+      />
     </section>
   );
 }
@@ -277,6 +290,13 @@ export function CaseFilePanel({
 
         {activeTab === "notes" ? (
           <NotesTab
+            suspect={suspect}
+            interrogationState={interrogationState}
+          />
+        ) : null}
+
+        {activeTab === "checklist" ? (
+          <ChecklistTab
             suspect={suspect}
             interrogationState={interrogationState}
           />

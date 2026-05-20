@@ -7,6 +7,7 @@ const tabs: Array<{ id: CaseFileTab; label: string }> = [
   { id: "case", label: "CASE FILE" },
   { id: "history", label: "HISTORY" },
   { id: "notes", label: "NOTES" },
+  { id: "checklist", label: "CHECKLIST" },
 ];
 
 type CaseFileTabsProps = {
