@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Echoes of the Hollow Crown",
-  description: "A dark fantasy LLM-ready text adventure game.",
+  title: "The Laughing Cat Caper",
+  description: "A noir pixel art LLM-ready interrogation game.",
   icons: {
     icon: "/icon.svg",
   },
