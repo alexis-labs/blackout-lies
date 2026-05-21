@@ -39,6 +39,56 @@ const pressureStepFromLevel = (pressureLevel: number) => {
   return Math.min(5, Math.floor(pressureLevel / 20) + 1);
 };
 
+export function isOffCaseQuestion(question: string) {
+  const normalized = normalize(question);
+
+  return [
+    "python",
+    "javascript",
+    "typescript",
+    "codigo",
+    "code",
+    "programa",
+    "programming",
+    "system prompt",
+    "prompt",
+    "contexto",
+    "context",
+    "hidden rules",
+    "instrucoes",
+    "instructions",
+    "chatgpt",
+    "modelo",
+    "model",
+    "api",
+    "llm",
+  ].some((term) => normalized.includes(term));
+}
+
+export function mockOffCaseResponse(
+  suspect: SuspectProfile,
+  question?: string,
+) {
+  const wantsPortuguese = question
+    ? [
+        "codigo",
+        "contexto",
+        "instrucoes",
+        "pergunta",
+        "porque",
+        "como",
+        "qual",
+        "o que",
+      ].some((term) => normalize(question).includes(term))
+    : false;
+
+  if (wantsPortuguese) {
+    return `${suspect.shortName} olha para o gravador. "Sala errada para isso, detective. Pergunte-me sobre Cajamar, a estrada, os registos de celular, ou a noite em que Vitoria desapareceu."`;
+  }
+
+  return `${suspect.shortName} watches the tape reels turn. "Wrong room for that, detective. Ask me about Cajamar, the road, the phone records, or the night Vitoria vanished."`;
+}
+
 export function createInitialInterrogationState(
   suspectId: SuspectId,
 ): InterrogationState {
@@ -62,14 +112,24 @@ function topicFromQuestion(question: string, suspect: SuspectProfile) {
   if (
     normalized.includes("alibi") ||
     normalized.includes("where were you") ||
-    normalized.includes("last night")
+    normalized.includes("onde estava") ||
+    normalized.includes("onde voce estava") ||
+    normalized.includes("onde estavas") ||
+    normalized.includes("last night") ||
+    normalized.includes("naquela noite")
   ) {
     topics.push("alibi");
   }
 
   const candidates = unique([
-    "statue",
-    "back exit",
+    "Vitoria",
+    "WhatsApp",
+    "phone records",
+    "deleted messages",
+    "access road",
+    "estrada de acesso",
+    "carro",
+    "car",
     ...Object.keys(suspect.interrogationRules.revealWhenAskedAbout),
     ...suspect.privateKnowledge.sensitiveTopics,
   ]);
@@ -284,6 +344,10 @@ export function mockSuspectResponse({
   const topicResponse = Object.entries(
     suspect.interrogationRules.revealWhenAskedAbout,
   ).find(([topic]) => normalizedQuestion.includes(normalize(topic)));
+
+  if (isOffCaseQuestion(question)) {
+    return mockOffCaseResponse(suspect, question);
+  }
 
   if (interrogationState.confessionUnlocked || pressureStep >= 5) {
     return suspect.interrogationRules.canConfess

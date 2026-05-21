@@ -93,6 +93,22 @@ export function useSound() {
     }
   }, []);
 
+  const startMusicLoop = useCallback(() => {
+    try {
+      audioManager.startMusicLoop();
+    } catch {
+      // Audio should never block gameplay controls.
+    }
+  }, []);
+
+  const stopMusicLoop = useCallback(() => {
+    try {
+      audioManager.stopMusicLoop();
+    } catch {
+      // Audio should never block gameplay controls.
+    }
+  }, []);
+
   return {
     enabled,
     volume,
@@ -100,7 +116,9 @@ export function useSound() {
     playDialogueBlip,
     setEnabled,
     setVolume,
+    startMusicLoop,
     startThinkingLoop,
+    stopMusicLoop,
     stopThinkingLoop,
     toggleEnabled,
   };

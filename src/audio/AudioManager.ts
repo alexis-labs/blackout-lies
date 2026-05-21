@@ -16,6 +16,8 @@ class AudioManager {
   masterVolume = 0.45;
 
   private context?: AudioContext;
+  private music?: HTMLAudioElement;
+  private musicRequested = false;
   private thinkingLoopId?: number;
   private lastBlipAt = 0;
   private lastHoverAt = 0;
@@ -45,11 +47,18 @@ class AudioManager {
 
     if (!enabled) {
       this.stopThinkingLoop(false);
+      this.pauseMusic();
+      return;
+    }
+
+    if (this.musicRequested) {
+      void this.playMusic();
     }
   }
 
   setVolume(volume: number) {
     this.masterVolume = clamp(volume, 0, 1);
+    this.syncMusicVolume();
   }
 
   play(sound: SoundName) {
@@ -138,6 +147,59 @@ class AudioManager {
 
     if (playStop) {
       this.playPattern(syntheticSfx.thinkingLoopStop);
+    }
+  }
+
+  startMusicLoop() {
+    this.musicRequested = true;
+
+    if (!this.enabled) {
+      return;
+    }
+
+    void this.playMusic();
+  }
+
+  stopMusicLoop() {
+    this.musicRequested = false;
+    this.pauseMusic();
+  }
+
+  private getMusic() {
+    if (this.music || typeof window === "undefined") {
+      return this.music;
+    }
+
+    const music = new Audio("/assets/music/background-loop.mp3");
+    music.loop = true;
+    music.preload = "auto";
+    this.music = music;
+    this.syncMusicVolume();
+
+    return music;
+  }
+
+  private async playMusic() {
+    const music = this.getMusic();
+
+    if (!music) {
+      return;
+    }
+
+    try {
+      await music.play();
+    } catch {
+      // Browsers can still block media playback; gameplay should continue.
+    }
+  }
+
+  private pauseMusic() {
+    this.music?.pause();
+  }
+
+  private syncMusicVolume() {
+    if (this.music) {
+      this.music.volume = clamp(this.masterVolume * 0.255, 0, 1);
     }
   }
 

@@ -114,6 +114,8 @@ function CaseTabContent({
   );
   const hasTopic = (topic: string) =>
     topics.some((coveredTopic) => coveredTopic === topic.toLowerCase());
+  const hasAnyTopic = (targetTopics: string[]) =>
+    targetTopics.some((topic) => hasTopic(topic));
   const caseStatus = interrogationState.caseClosed
     ? "CLOSED"
     : suspect.caseContext.status;
@@ -167,8 +169,27 @@ function CaseTabContent({
 
       <div className="case-progress-strip" aria-label="Interrogation state">
         <span className={hasTopic("alibi") ? "stamped" : ""}>ALIBI</span>
-        <span className={hasTopic("statue") ? "stamped" : ""}>STATUE</span>
-        <span className={hasTopic("back exit") ? "stamped" : ""}>EXIT</span>
+        <span
+          className={
+            hasAnyTopic(["WhatsApp", "phone records", "celular"])
+              ? "stamped"
+              : ""
+          }
+        >
+          PHONE
+        </span>
+        <span
+          className={
+            hasAnyTopic(["access road", "estrada de acesso"]) ? "stamped" : ""
+          }
+        >
+          ROAD
+        </span>
+        <span
+          className={hasAnyTopic(["car", "carro"]) ? "stamped" : ""}
+        >
+          CAR
+        </span>
         <span
           className={
             interrogationState.contradictionsFound.length > 0

@@ -1,8 +1,8 @@
-# The Laughing Cat Caper
+# Caso Vitoria: Cajamar File
 
-The Laughing Cat Caper e um jogo de interrogatorio noir em pixel art, feito com Next.js + TypeScript.
+Caso Vitoria: Cajamar File e um jogo de interrogatorio noir em pixel art, feito com Next.js + TypeScript.
 
-O jogador alterna entre suspeitos, faz perguntas livres, acompanha contradicoes e tenta arrancar uma confissao antes de perder o controlo da sala.
+O jogador alterna entre suspeitos, faz perguntas livres, acompanha contradicoes e tenta reconstruir uma linha temporal inspirada no Caso Vitoria, em Cajamar.
 
 O projeto roda em dois modos:
 - `mock/local`: totalmente offline, com motor de suspeitos local

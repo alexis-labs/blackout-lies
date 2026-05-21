@@ -1,20 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { GameScreen } from "@/components/game/GameScreen";
 import { PageTransition } from "@/components/game/PageTransition";
 import { StartScreen } from "@/components/game/StartScreen";
+import { useSound } from "@/hooks/useSound";
 
 export function GameShell() {
   const [hasStarted, setHasStarted] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const { startMusicLoop } = useSound();
+
+  useEffect(() => {
+    startMusicLoop();
+  }, [startMusicLoop]);
+
+  function startGame() {
+    setIsTransitioning(true);
+  }
 
   return (
     <>
       {hasStarted ? (
         <GameScreen />
       ) : (
-        <StartScreen onStart={() => setIsTransitioning(true)} />
+        <StartScreen onStart={startGame} />
       )}
       {isTransitioning ? (
         <PageTransition
