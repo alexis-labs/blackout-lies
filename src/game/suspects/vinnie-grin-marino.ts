@@ -30,7 +30,7 @@ export const vinnieGrinMarino: SuspectProfile = {
 
   caseContext: {
     caseId: "CV-2025",
-    caseTitle: "Caso Vitoria: Cajamar File",
+    caseTitle: "Blackout Lies",
     status: "OPEN",
     knownAssociates: [
       "Vitoria Regina de Sousa",

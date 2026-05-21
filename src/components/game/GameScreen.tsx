@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { CaseFilePanel } from "@/components/game/CaseFilePanel";
 import { InputBar } from "@/components/game/InputBar";
 import { PageTransition } from "@/components/game/PageTransition";
@@ -38,7 +38,7 @@ type PendingQuestion = {
 type InterrogationGameState = {
   activeFileTab: CaseFileTab;
   input: string;
-  isFileOpen: boolean;
+  isFileOpen?: boolean;
   activeSuspectId: SuspectId;
   interrogationStates: Record<SuspectId, InterrogationState>;
   suspectMessages: Record<SuspectId, string>;
@@ -75,12 +75,24 @@ function shouldOpenCaseFileByDefault() {
   return !window.matchMedia(MOBILE_CASE_FILE_QUERY).matches;
 }
 
+function subscribeToCaseFilePreference(onChange: () => void) {
+  if (typeof window === "undefined") {
+    return () => {};
+  }
+
+  const mediaQuery = window.matchMedia(MOBILE_CASE_FILE_QUERY);
+  mediaQuery.addEventListener("change", onChange);
+
+  return () => {
+    mediaQuery.removeEventListener("change", onChange);
+  };
+}
+
 function createInitialGameState(): InterrogationGameState {
   return {
     activeFileTab: "case",
     input: "",
-    // Keep first render deterministic for SSR hydration.
-    isFileOpen: false,
+    isFileOpen: undefined,
     activeSuspectId: defaultSuspectId,
     interrogationStates: makeInitialInterrogationStates(),
     suspectMessages: makeInitialSuspectMessages(),
@@ -115,6 +127,12 @@ export function GameScreen() {
     volume,
   } = useSound();
   const fallbackSuspect = allSuspects[0];
+  const defaultIsFileOpen = useSyncExternalStore(
+    subscribeToCaseFilePreference,
+    shouldOpenCaseFileByDefault,
+    () => false,
+  );
+  const isFileOpen = game.isFileOpen ?? defaultIsFileOpen;
   const activeSuspect =
     getSuspectById(game.activeSuspectId) ?? fallbackSuspect;
   const activeInterrogationState =
@@ -132,19 +150,12 @@ export function GameScreen() {
   const isSuspectTransitioning = Boolean(transitioningSuspectId);
   const isCaseClosed = activeInterrogationState.caseClosed;
 
-  useLayoutEffect(() => {
-    setGame((current) => ({
-      ...current,
-      isFileOpen: shouldOpenCaseFileByDefault(),
-    }));
-  }, []);
-
   function updateInput(input: string) {
     setGame((current) => ({ ...current, input }));
   }
 
   function toggleFile() {
-    setGame((current) => ({ ...current, isFileOpen: !current.isFileOpen }));
+    setGame((current) => ({ ...current, isFileOpen: !isFileOpen }));
   }
 
   function setActiveFileTab(activeFileTab: CaseFileTab) {
@@ -228,11 +239,12 @@ export function GameScreen() {
     }));
 
     try {
-      const answer = await askSuspect({
+      const suspectAnswer = await askSuspect({
         suspect,
         interrogationState,
         question,
       });
+      const { answer, discoveredConfessionIds } = suspectAnswer;
       stopThinkingLoop();
       const entry: DialogueEntry = {
         id: makeDialogueId(),
@@ -250,6 +262,7 @@ export function GameScreen() {
           suspect,
           question,
           answer,
+          discoveredConfessionIds,
         );
 
         return {
@@ -329,7 +342,7 @@ export function GameScreen() {
       </div>
 
       <CaseFilePanel
-        isOpen={game.isFileOpen}
+        isOpen={isFileOpen}
         activeTab={game.activeFileTab}
         suspect={activeSuspect}
         interrogationState={activeInterrogationState}
@@ -358,7 +371,7 @@ export function GameScreen() {
 
         <InputBar
           input={game.input}
-          isFileOpen={game.isFileOpen}
+          isFileOpen={isFileOpen}
           hasError={game.status === "error"}
           key={`input-${game.inputErrorKey}`}
           disabled={isBusy || isCaseClosed}

@@ -15,7 +15,9 @@ export function buildSuspectPrompt(
   const pressureStep = getPressureStep(interrogationState.pressureLevel);
   const confessionTargets = suspect.confessionChecklist
     .slice(0, 5)
-    .flatMap((item) => (item ? [`- ${item.confession}`] : []))
+    .flatMap((item) =>
+      item ? [`- ${item.id}: ${item.label} / ${item.confession}`] : [],
+    )
     .join("\n");
 
   return `
@@ -36,6 +38,11 @@ Current interrogation state:
 - Pressure level: ${interrogationState.pressureLevel}
 - Pressure stage: ${pressureStep}/5
 - Confession unlocked: ${interrogationState.confessionUnlocked ? "yes" : "no"}
+- Completed confession IDs: ${
+    interrogationState.completedConfessionIds.length > 0
+      ? interrogationState.completedConfessionIds.join(", ")
+      : "none"
+  }
 
 Pressure behaviour:
 - Stage 1: stay guarded and evasive unless asked about exact evidence.
@@ -46,6 +53,12 @@ Pressure behaviour:
 
 Confession targets:
 ${confessionTargets || "- none configured"}
+
+Engine output contract:
+- Return only a compact JSON object with these exact keys: answer, discoveredConfessionIds.
+- answer is the suspect's spoken in-character answer only.
+- discoveredConfessionIds is an array of checklist IDs whose fact the suspect clearly admits, confirms, or reveals in this answer.
+- Use [] when no new checklist fact is discovered.
 
 ${suspectPromptGuardrails.trim()}
 `;

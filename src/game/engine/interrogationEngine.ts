@@ -1,5 +1,6 @@
 import type {
   InterrogationState,
+  SuspectAnswer,
   SuspectId,
   SuspectProfile,
 } from "@/game/types/suspect";
@@ -12,6 +13,7 @@ type AskSuspectParams = {
 
 type InterrogateApiResponse = {
   answer?: string;
+  discoveredConfessionIds?: string[];
   error?: string;
 };
 
@@ -262,17 +264,25 @@ function findCompletedConfessionIds(
   state: InterrogationState,
   suspect: SuspectProfile,
   answer: string,
+  discoveredConfessionIds: string[] = [],
 ) {
   const previousAnswerText = state.history.map((entry) => entry.answer).join(" ");
   const answerText = `${previousAnswerText} ${answer}`;
   const existingIds = state.completedConfessionIds ?? [];
+  const checklistIds = suspect.confessionChecklist
+    .slice(0, 5)
+    .filter((item): item is NonNullable<typeof item> => Boolean(item))
+    .map((item) => item.id);
+  const explicitIds = discoveredConfessionIds.filter((id) =>
+    checklistIds.includes(id),
+  );
   const admittedIds = suspect.confessionChecklist
     .slice(0, 5)
     .filter((item): item is NonNullable<typeof item> => Boolean(item))
     .filter((item) => confessionIsAdmitted(answerText, item))
     .map((item) => item.id);
 
-  return unique([...existingIds, ...admittedIds]);
+  return unique([...existingIds, ...explicitIds, ...admittedIds]);
 }
 
 function hasCompletedChecklist(
@@ -295,6 +305,7 @@ export function updateInterrogationProgress(
   suspect: SuspectProfile,
   question: string,
   answer: string,
+  discoveredConfessionIds: string[] = [],
 ): InterrogationState {
   const topicsCovered = unique([
     ...state.topicsCovered,
@@ -317,6 +328,7 @@ export function updateInterrogationProgress(
     state,
     suspect,
     answer,
+    discoveredConfessionIds,
   );
   const caseClosed = hasCompletedChecklist(suspect, completedConfessionIds);
 
@@ -400,7 +412,9 @@ export function mockSuspectResponse({
   );
 }
 
-async function askConfiguredLLMEngine(params: AskSuspectParams) {
+async function askConfiguredLLMEngine(
+  params: AskSuspectParams,
+): Promise<SuspectAnswer> {
   const response = await fetch("/api/interrogate", {
     method: "POST",
     headers: {
@@ -424,10 +438,19 @@ async function askConfiguredLLMEngine(params: AskSuspectParams) {
     );
   }
 
-  return data.answer;
+  return {
+    answer: data.answer,
+    discoveredConfessionIds: Array.isArray(data.discoveredConfessionIds)
+      ? data.discoveredConfessionIds.filter(
+          (id): id is string => typeof id === "string",
+        )
+      : [],
+  };
 }
 
-export async function askSuspect(params: AskSuspectParams): Promise<string> {
+export async function askSuspect(
+  params: AskSuspectParams,
+): Promise<SuspectAnswer> {
   try {
     return await askConfiguredLLMEngine(params);
   } catch (error) {
@@ -437,6 +460,9 @@ export async function askSuspect(params: AskSuspectParams): Promise<string> {
 
     await wait(320);
 
-    return mockSuspectResponse(params);
+    return {
+      answer: mockSuspectResponse(params),
+      discoveredConfessionIds: [],
+    };
   }
 }

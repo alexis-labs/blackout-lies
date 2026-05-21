@@ -31,13 +31,13 @@ export async function POST(request: Request) {
       suspect.id,
       body.interrogationState,
     );
-    const answer = await generateConfiguredSuspectAnswer({
+    const suspectAnswer = await generateConfiguredSuspectAnswer({
       suspect,
       interrogationState,
       question,
     });
 
-    return NextResponse.json({ answer });
+    return NextResponse.json(suspectAnswer);
   } catch (error) {
     return NextResponse.json(
       {

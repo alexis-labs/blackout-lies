@@ -1,8 +1,8 @@
-# Caso Vitoria: Cajamar File
+# Blackout Lies
 
-Caso Vitoria: Cajamar File e um jogo de interrogatorio noir em pixel art, feito com Next.js + TypeScript.
+Blackout Lies e um jogo de interrogatorio noir em pixel art, feito com Next.js + TypeScript.
 
-O jogador alterna entre suspeitos, faz perguntas livres, acompanha contradicoes e tenta reconstruir uma linha temporal inspirada no Caso Vitoria, em Cajamar.
+O jogador alterna entre suspeitos, faz perguntas livres, acompanha contradicoes e tenta reconstruir uma linha temporal ficcional inspirada no Caso Vitoria, em Cajamar.
 
 O projeto roda em dois modos:
 - `mock/local`: totalmente offline, com motor de suspeitos local
@@ -44,7 +44,7 @@ Para ativar OpenAI, cria/edita `.env.local` com:
 ```bash
 LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-proj-your-key
-OPENAI_MODEL=gpt-5.4-mini
+OPENAI_MODEL=gpt-5.4-nano
 OPENAI_BASE_URL=https://api.openai.com/v1
 ```
 

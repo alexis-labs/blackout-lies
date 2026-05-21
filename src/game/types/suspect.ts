@@ -90,3 +90,8 @@ export type InterrogationState = {
   completedConfessionIds: string[];
   caseClosed: boolean;
 };
+
+export type SuspectAnswer = {
+  answer: string;
+  discoveredConfessionIds: string[];
+};

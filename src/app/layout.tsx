@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Caso Vitoria: Cajamar File",
+  title: "Blackout Lies",
   description: "A noir pixel art interrogation game inspired by a real case.",
   icons: {
     icon: "/icon.svg",
