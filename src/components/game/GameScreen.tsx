@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { CaseFilePanel } from "@/components/game/CaseFilePanel";
 import { InputBar } from "@/components/game/InputBar";
 import { PageTransition } from "@/components/game/PageTransition";
@@ -20,15 +20,23 @@ import {
   getAllSuspects,
   getSuspectById,
 } from "@/game/suspects";
-import type { CaseFileTab } from "@/game/types/case";
+import { getCaseFolderById } from "@/game/suspects/cases";
+import type { CaseFileTab, CaseProgress } from "@/game/types/case";
 import type { DialogueEntry } from "@/game/types/dialogue";
 import type {
   InterrogationState,
   SuspectId,
+  SuspectProfile,
 } from "@/game/types/suspect";
 import { useSound } from "@/hooks/useSound";
 
 type GameStatus = "idle" | "thinking" | "typing" | "error";
+
+type GameScreenProps = {
+  caseId: string;
+  onBackToCases: () => void;
+  onProgressChange?: (caseId: string, progress: CaseProgress) => void;
+};
 
 type PendingQuestion = {
   suspectId: SuspectId;
@@ -47,19 +55,41 @@ type InterrogationGameState = {
   pendingQuestion?: PendingQuestion;
 };
 
-const allSuspects = getAllSuspects();
+const registeredSuspects = getAllSuspects();
 
-const makeInitialInterrogationStates = () =>
+function isSuspectProfile(
+  suspect: SuspectProfile | undefined,
+): suspect is SuspectProfile {
+  return Boolean(suspect);
+}
+
+function getSuspectsForCase(caseId: string) {
+  const caseFolder = getCaseFolderById(caseId);
+
+  if (caseFolder && caseFolder.status !== "LOCKED") {
+    const caseSuspects = caseFolder.suspectIds
+      .map((suspectId) => getSuspectById(suspectId))
+      .filter(isSuspectProfile);
+
+    if (caseSuspects.length > 0) {
+      return caseSuspects;
+    }
+  }
+
+  return registeredSuspects;
+}
+
+const makeInitialInterrogationStates = (suspects: SuspectProfile[]) =>
   Object.fromEntries(
-    allSuspects.map((suspect) => [
+    suspects.map((suspect) => [
       suspect.id,
       createInitialInterrogationState(suspect.id),
     ]),
   ) as Record<SuspectId, InterrogationState>;
 
-const makeInitialSuspectMessages = () =>
+const makeInitialSuspectMessages = (suspects: SuspectProfile[]) =>
   Object.fromEntries(
-    allSuspects.map((suspect) => [
+    suspects.map((suspect) => [
       suspect.id,
       suspect.initialMessage ?? `${suspect.shortName} waits under the lamp.`,
     ]),
@@ -88,14 +118,17 @@ function subscribeToCaseFilePreference(onChange: () => void) {
   };
 }
 
-function createInitialGameState(): InterrogationGameState {
+function createInitialGameState(caseId: string): InterrogationGameState {
+  const suspects = getSuspectsForCase(caseId);
+  const firstSuspect = suspects[0];
+
   return {
     activeFileTab: "case",
     input: "",
     isFileOpen: undefined,
-    activeSuspectId: defaultSuspectId,
-    interrogationStates: makeInitialInterrogationStates(),
-    suspectMessages: makeInitialSuspectMessages(),
+    activeSuspectId: firstSuspect?.id ?? defaultSuspectId,
+    interrogationStates: makeInitialInterrogationStates(suspects),
+    suspectMessages: makeInitialSuspectMessages(suspects),
     status: "idle",
     inputErrorKey: 0,
     pendingQuestion: undefined,
@@ -111,9 +144,14 @@ const formatTimestamp = () =>
     minute: "2-digit",
   });
 
-export function GameScreen() {
+export function GameScreen({
+  caseId,
+  onBackToCases,
+  onProgressChange,
+}: GameScreenProps) {
+  const allSuspects = useMemo(() => getSuspectsForCase(caseId), [caseId]);
   const [game, setGame] = useState<InterrogationGameState>(
-    createInitialGameState,
+    () => createInitialGameState(caseId),
   );
   const [transitioningSuspectId, setTransitioningSuspectId] =
     useState<SuspectId>();
@@ -149,6 +187,22 @@ export function GameScreen() {
   const isBusy = game.status === "thinking" || game.status === "typing";
   const isSuspectTransitioning = Boolean(transitioningSuspectId);
   const isCaseClosed = activeInterrogationState.caseClosed;
+  const caseProgress = useMemo<CaseProgress>(() => {
+    const totalSuspects = allSuspects.length;
+    const completedSuspects = allSuspects.filter(
+      (suspect) => game.interrogationStates[suspect.id]?.caseClosed,
+    ).length;
+
+    return {
+      completedSuspects,
+      totalSuspects,
+      isComplete: totalSuspects > 0 && completedSuspects === totalSuspects,
+    };
+  }, [allSuspects, game.interrogationStates]);
+
+  useEffect(() => {
+    onProgressChange?.(caseId, caseProgress);
+  }, [caseId, caseProgress, onProgressChange]);
 
   function updateInput(input: string) {
     setGame((current) => ({ ...current, input }));
@@ -172,7 +226,7 @@ export function GameScreen() {
 
   function setActiveSuspectId(suspectId: SuspectId) {
     if (
-      !getSuspectById(suspectId) ||
+      !allSuspects.some((suspect) => suspect.id === suspectId) ||
       suspectId === game.activeSuspectId ||
       isSuspectTransitioning
     ) {
@@ -326,6 +380,18 @@ export function GameScreen() {
       <SuspectBackground backgroundUrl={activeSuspect.backgroundUrl} />
 
       <div className="interrogation-controls" aria-label="Interrogation controls">
+        <button
+          className="case-menu-return-button"
+          type="button"
+          disabled={game.status === "thinking" || isSuspectTransitioning}
+          onClick={() => {
+            play("fileClose");
+            onBackToCases();
+          }}
+        >
+          Files
+        </button>
+
         <SuspectSelector
           suspects={allSuspects}
           activeSuspectId={activeSuspect.id}
