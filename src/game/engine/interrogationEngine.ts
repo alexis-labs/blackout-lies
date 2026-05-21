@@ -58,8 +58,6 @@ export function isOffCaseQuestion(question: string) {
     "instrucoes",
     "instructions",
     "chatgpt",
-    "modelo",
-    "model",
     "api",
     "llm",
   ].some((term) => normalized.includes(term));

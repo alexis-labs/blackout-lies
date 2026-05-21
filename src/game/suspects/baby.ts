@@ -145,7 +145,7 @@ export const baby: SuspectProfile = {
   },
 
   suggestedQuestions: [
-    "Porque tinha imagens da rota da Vitoria no telemovel?",
+    "Porque tinha imagens da rota da Vitoria no celular?",
     "Qual era a sua relacao real com Vinnie?",
     "Que mensagens apagou antes do depoimento?",
     "Sabia que o carro da familia estava avariado?",
