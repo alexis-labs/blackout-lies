@@ -594,10 +594,6 @@ export async function askSuspect(
   try {
     return await askConfiguredLLMEngine(params);
   } catch (error) {
-    if (error instanceof InterrogateApiError) {
-      throw error;
-    }
-
     await wait(320);
 
     return {
