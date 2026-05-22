@@ -88,6 +88,7 @@ export type InterrogationState = {
   pressureLevel: number;
   confessionUnlocked: boolean;
   completedConfessionIds: string[];
+  lostClueCount: number;
   caseClosed: boolean;
 };
 

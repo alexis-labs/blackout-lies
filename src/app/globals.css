@@ -1129,6 +1129,14 @@ select:disabled {
   font-size: 0.58rem;
 }
 
+.history-entry .reaction-hit {
+  color: var(--button-green);
+}
+
+.history-entry .reaction-miss {
+  color: var(--danger-red);
+}
+
 .pending-entry {
   color: var(--button-blue);
 }
@@ -1462,6 +1470,117 @@ select:disabled {
   outline: 0;
 }
 
+.reaction-controls {
+  display: flex;
+  width: clamp(430px, 44vw, 740px);
+  max-width: calc(100vw - 24px);
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  border: 2px solid rgba(201, 150, 69, 0.42);
+  border-radius: 4px;
+  color: var(--text-light);
+  background:
+    linear-gradient(90deg, rgba(201, 150, 69, 0.12), transparent 28%),
+    rgba(5, 6, 7, 0.62);
+  box-shadow:
+    4px 4px 0 rgba(0, 0, 0, 0.42),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.08);
+  padding: 4px 6px;
+  pointer-events: auto;
+}
+
+.reaction-label {
+  flex: 0 0 auto;
+  color: var(--button-gold-light);
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 0.4rem;
+  letter-spacing: 0;
+}
+
+.reaction-controls ul {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-width: 0;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  list-style: none;
+}
+
+.reaction-controls li {
+  min-width: 0;
+}
+
+.reaction-button {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  width: 100%;
+  min-height: 48px;
+  align-items: center;
+  gap: 7px;
+  border: 2px solid rgba(201, 150, 69, 0.34);
+  border-radius: 3px;
+  color: rgba(245, 230, 200, 0.9);
+  background: rgba(8, 8, 7, 0.34);
+  padding: 6px 7px;
+  text-align: left;
+}
+
+.reaction-button svg {
+  color: var(--button-gold-light);
+}
+
+.reaction-button span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.reaction-button strong,
+.reaction-button small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reaction-button strong {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: clamp(0.52rem, 0.62vw, 0.68rem);
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.reaction-button small {
+  color: rgba(245, 230, 200, 0.68);
+  font-size: clamp(0.72rem, 0.78vw, 0.88rem);
+  line-height: 1;
+}
+
+.reaction-truth:hover,
+.reaction-truth:focus-visible {
+  border-color: var(--button-green);
+  background: rgba(63, 81, 50, 0.26);
+}
+
+.reaction-doubt:hover,
+.reaction-doubt:focus-visible {
+  border-color: var(--button-gold-light);
+  background: rgba(201, 150, 69, 0.18);
+}
+
+.reaction-lie:hover,
+.reaction-lie:focus-visible {
+  border-color: var(--danger-red);
+  background: rgba(168, 50, 36, 0.2);
+}
+
+.reaction-button:focus-visible {
+  outline: 0;
+}
+
 .interrogation-bottom-hud {
   position: absolute;
   right: 0;
@@ -1635,6 +1754,7 @@ select:disabled {
 .send-question-button:active,
 .case-file-tabs button:active,
 .suggested-questions button:active,
+.reaction-button:active,
 .sound-toggle-button:active,
 .case-menu-return-button:active {
   transform: translate(2px, 2px);
@@ -1769,6 +1889,10 @@ select:disabled {
     width: calc(100vw - 24px);
   }
 
+  .reaction-controls {
+    width: calc(100vw - 24px);
+  }
+
   .interrogation-input-bar {
     grid-template-columns: auto minmax(0, 1fr) 62px;
     width: calc(100vw - 24px);
@@ -1886,6 +2010,26 @@ select:disabled {
     min-height: 42px;
     padding: 7px 8px;
     font-size: 0.9rem;
+  }
+
+  .reaction-controls {
+    align-items: stretch;
+    gap: 6px;
+    padding: 5px 6px;
+  }
+
+  .reaction-controls ul {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .reaction-button {
+    min-height: 44px;
+    padding: 7px 8px;
+  }
+
+  .reaction-button small {
+    white-space: normal;
   }
 
   .interrogation-input-bar {

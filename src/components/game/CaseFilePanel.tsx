@@ -266,6 +266,7 @@ function NotesTab({
           <li>Topics covered: {topics}</li>
           <li>Contradictions: {contradictions}</li>
           <li>Pressure level: {interrogationState.pressureLevel}%</li>
+          <li>Lost information: {interrogationState.lostClueCount}</li>
           <li>
             Confession status:{" "}
             {interrogationState.confessionUnlocked ? "Unlocked" : "Locked"}

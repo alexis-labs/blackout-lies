@@ -1,14 +1,35 @@
 # Blackout Lies
 
-Blackout Lies e um jogo de interrogatorio noir em pixel art, feito com Next.js + TypeScript.
+Blackout Lies is a noir pixel art interrogation game built with Next.js and TypeScript. Players move through a fictional case file, question suspects, pressure contradictions, and piece together a broken timeline one answer at a time.
 
-O jogador alterna entre suspeitos, faz perguntas livres, acompanha contradicoes e tenta reconstruir uma linha temporal ficcional inspirada no Caso Vitoria, em Cajamar.
+![Blackout Lies gameplay example](public/assets/screenshots/gameplay-example.png)
 
-O projeto roda em dois modos:
-- `mock/local`: totalmente offline, com motor de suspeitos local
-- `openai`: respostas dinamicas via API, sem expor chave no cliente
+## Why This Project Exists
 
-## Stack
+Blackout Lies explores how an interrogation game can combine:
+
+- Free-form detective questions
+- Character-specific lies, secrets, and pressure points
+- A local rules engine that works offline
+- Optional LLM-backed suspect responses through a server route
+- A responsive noir pixel art interface
+
+The case content is fictionalized and designed for gameplay. Avoid presenting in-game outcomes as real-world legal conclusions.
+
+## Features
+
+- Playable case menu with locked and open case folders
+- Three suspects with profiles, secrets, contradictions, and confession checklists
+- Free-form interrogation input
+- Suggested questions for each suspect
+- Case file tabs for case context, history, notes, and checklist progress
+- Pressure bar and topic-based progression
+- Local fallback engine for offline play
+- Optional OpenAI provider handled on the server
+- Browser audio feedback with volume and mute controls
+- Responsive noir pixel art UI
+
+## Tech Stack
 
 - Next.js 16
 - React 19
@@ -16,133 +37,160 @@ O projeto roda em dois modos:
 - Tailwind CSS
 - Framer Motion
 - Lucide React
+- Zustand
+- Three.js
 - Browser Audio API
 
-## Quickstart
+## Quick Start
 
 ```bash
 npm install
 npm run dev
 ```
 
-Abre `http://localhost:3000`.
+Open `http://localhost:3000`.
 
-## Scripts
+The game works without API credentials. When no LLM provider is configured, it uses the local interrogation engine.
+
+## Available Scripts
 
 ```bash
 npm run dev
 npm run typecheck
 npm run build
+npm run lint
 ```
 
-## Configuracao LLM
+## LLM Configuration
 
-Sem variaveis de ambiente, o jogo usa o motor local automaticamente.
-
-Para ativar OpenAI, cria/edita `.env.local` com:
+The default mode is local/offline. To enable OpenAI responses, copy `.env.example` to `.env.local` and fill in your own key:
 
 ```bash
 LLM_PROVIDER=openai
 OPENAI_API_KEY=sk-proj-your-key
-OPENAI_MODEL=gpt-5.4-nano
+OPENAI_MODEL=gpt-5.4-mini
 OPENAI_BASE_URL=https://api.openai.com/v1
 ```
 
-Notas:
-- A chave nunca vai para o browser.
-- O request passa por `src/app/api/interrogate/route.ts` no servidor.
-- Se `LLM_PROVIDER` nao for `openai` ou faltar `OPENAI_API_KEY`, ha fallback para o modo local.
+Security notes:
 
-## Como o jogo funciona
+- Never commit `.env.local`.
+- Never commit API keys.
+- The browser never receives the API key.
+- Requests go through `src/app/api/interrogate/route.ts`.
+- If `LLM_PROVIDER` is not `openai` or `OPENAI_API_KEY` is missing, the game falls back to local mode.
 
-1. O utilizador envia uma pergunta na interface.
-2. O estado da ronda e enviado para a API (`/api/interrogate`).
-3. O servidor decide entre motor local ou provider LLM.
-4. A resposta regressa com novo estado de pressao, pistas e contradicoes.
-5. A UI atualiza historico, case file e sugestoes.
+## How The Game Works
 
-## Estrutura do projeto
+1. The player selects a case folder.
+2. The game loads the suspects assigned to that case.
+3. The player asks a free-form question.
+4. The server route chooses either the local engine or the configured LLM provider.
+5. The answer updates the dialogue history, pressure, notes, and checklist progress.
+6. A suspect can only close their file when required confession points are discovered.
+
+## Project Structure
 
 ```txt
 src/
   app/
-    page.tsx
+    api/interrogate/route.ts     Server entry point for suspect answers
+    globals.css                  Noir pixel art UI styles
     layout.tsx
-    globals.css
-    api/
-      chat/
-      interrogate/route.ts
+    page.tsx
   audio/
     AudioManager.ts
     sfx.ts
-  components/
-    game/
-      GameScreen.tsx
-      DialogueHistory.tsx
-      InputBar.tsx
-      PressureBar.tsx
-      SuspectSelector.tsx
-      ...
+  components/game/
+    CaseFilePanel.tsx
+    CaseMenuScreen.tsx
+    GameScreen.tsx
+    GameShell.tsx
+    InputBar.tsx
+    PressureBar.tsx
+    SpeechBubble.tsx
+    SuspectSelector.tsx
   game/
     engine/
-      interrogationEngine.ts
-      interrogationServer.ts
+      interrogationEngine.ts     Local interrogation rules and progression
+      interrogationServer.ts     Provider selection for server responses
     prompts/
       buildSuspectPrompt.ts
       promptTemplates.ts
     suspects/
+      cases.ts
       index.ts
+      baby.ts
       maria-black-cat.ts
       vinnie-grin-marino.ts
     types/
       case.ts
       dialogue.ts
       suspect.ts
+public/
+  assets/
+    screenshots/
+    start/
+    suspects/
+    music/
 ```
 
-## Regras de arquitetura
+## Architecture Rules
 
-- Tipos de dominio devem ficar em `src/game/types/`.
-- Conteudo de caso e suspeitos deve ficar em `src/game/suspects/`.
-- Logica de interrogatorio deve ficar em `src/game/engine/interrogationEngine.ts`.
-- Construcao de prompts deve ficar em `src/game/prompts/`.
-- Evita estado de jogo grande hardcoded dentro de componentes React.
+- Keep components modular.
+- Use TypeScript types from `src/game/types/`.
+- Keep suspect and case content in `src/game/suspects/`.
+- Keep interrogation logic in `src/game/engine/interrogationEngine.ts`.
+- Keep prompt construction in `src/game/prompts/`.
+- Do not hardcode large game state inside React components.
+- Do not add external services unless the project explicitly needs them.
+- Maintain the noir pixel art interrogation UI style.
 
-## Funcionalidades atuais
+## Contributing
 
-- Interrogatorio por input livre
-- Dois suspeitos jogaveis com perfis e contradicoes
-- Case file com separadores de caso, historico e notas
-- Barra de pressao e progressao por topicos
-- Perguntas sugeridas por contexto
-- Feedback sonoro com controlo on/off
-- UI responsiva com identidade noir pixel art
+Contributions are welcome. Good first contributions include bug fixes, accessibility improvements, responsive UI polish, new test coverage, clearer documentation, and small content improvements that respect the existing case structure.
 
-## Adicionar um novo suspeito
+Before opening a pull request:
 
-1. Criar um ficheiro em `src/game/suspects/novo-suspeito.ts`.
-2. Definir perfil, segredos, contradicoes e comportamento base.
-3. Exportar o suspeito em `src/game/suspects/index.ts`.
-4. Adicionar assets em `public/assets/suspects/novo-suspeito/`.
-5. Validar fluxo no motor local e no endpoint `api/interrogate`.
+1. Create a focused branch.
+2. Keep changes scoped to one feature or fix.
+3. Run `npm run typecheck`.
+4. Run `npm run build` when changing app behavior or build configuration.
+5. Add screenshots or notes for visible UI changes.
+6. Explain what changed and why in the PR description.
 
-## Troubleshooting rapido
+## Adding A New Suspect
 
-- `npm run dev` falha logo no arranque:
-  - corre `npm install` novamente
-  - valida versao do Node (`node -v`), idealmente LTS atual
-- Respostas OpenAI nao aparecem:
-  - confirma `LLM_PROVIDER=openai`
-  - confirma `OPENAI_API_KEY` em `.env.local`
-  - verifica erros no terminal do servidor
-- UI carrega mas sem audio:
-  - alguns browsers bloqueiam audio antes da primeira interacao do utilizador
+1. Create a file in `src/game/suspects/new-suspect.ts`.
+2. Define the suspect profile, case context, private knowledge, interrogation rules, suggested questions, confession checklist, and voice.
+3. Export the suspect from `src/game/suspects/index.ts`.
+4. Add the suspect to the relevant case in `src/game/suspects/cases.ts`.
+5. Add assets in `public/assets/suspects/new-suspect/`.
+6. Validate the local engine and `/api/interrogate` flow.
 
-## Seguranca
+## Adding A New Case
 
-- Nunca commitar `.env.local`.
-- Nunca expor API keys no cliente.
+1. Add a case folder in `src/game/suspects/cases.ts`.
+2. Assign one or more suspect IDs.
+3. Keep case evidence short, readable, and useful during interrogation.
+4. Add or reuse suspect assets in `public/assets/suspects/`.
+5. Test the case menu, suspect switching, checklist progress, and return-to-files flow.
 
-## Licenca
+## Content Guidelines
 
-Definir conforme a politica do projeto.
+- Keep writing concise, noir, and playable.
+- Make each suspect hide information in a different way.
+- Prefer clues that lead to questions instead of lore dumps.
+- Do not reveal core secrets from generic questions.
+- Keep fictionalized case material clearly framed as game content.
+
+## Troubleshooting
+
+- `npm run dev` fails immediately: run `npm install` again and check your Node.js version.
+- OpenAI responses do not appear: confirm `LLM_PROVIDER=openai`, `OPENAI_API_KEY`, and server logs.
+- The game loads without audio: browsers may block audio before the first user interaction.
+- A suspect gives no useful answer: verify their `interrogationRules`, `sensitiveTopics`, and checklist matchers.
+
+## License
+
+License information has not been defined yet. Add a `LICENSE` file before publishing the project as open source.

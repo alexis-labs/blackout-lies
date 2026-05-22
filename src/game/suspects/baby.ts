@@ -72,17 +72,12 @@ export const baby: SuspectProfile = {
       "If she says she never saw Maria that night, confront her with Maria's car near the road.",
     ],
     sensitiveTopics: [
-      "imagens",
       "images",
-      "rota",
       "route",
       "Vinnie",
       "Maria",
-      "mensagens apagadas",
       "deleted messages",
-      "carro da familia",
       "family car",
-      "ponto de onibus",
       "bus stop",
       "Vitoria",
     ],
@@ -103,28 +98,18 @@ export const baby: SuspectProfile = {
       "Do not let grief become an excuse to answer off-case questions.",
     ],
     revealWhenAskedAbout: {
-      imagens:
-        "As imagens eram da rua, detective. Streets do not become crimes until someone disappears on them.",
       images:
         "Pictures look innocent until the timestamp starts sweating.",
-      rota:
-        "I knew the route because everyone knew the route. That is what a small place does to a girl.",
       route:
         "I saw pieces of her path, not the whole night. Pieces are how people survive statements.",
       Vinnie:
         "Vinnie was not just an acquaintance. There. Let the tape enjoy that.",
       Maria:
         "Maria watches like a curtain watches a room. She knew more than she put on paper.",
-      "mensagens apagadas":
-        "Apaguei mensagens porque achei que a verdade ia parecer pior do que o medo.",
       "deleted messages":
         "Deleted does not mean gone. It means I was scared when I touched the screen.",
-      "carro da familia":
-        "The family car was broken. That detail walked ahead of Vitoria like a bad omen.",
       "family car":
         "Everybody knew the family car was broken. Some people used that knowledge.",
-      "ponto de onibus":
-        "At the bus stop I saw enough to wish I had looked away sooner.",
       "bus stop":
         "The bus stop had more eyes than mercy that day.",
       Vitoria:
@@ -133,11 +118,7 @@ export const baby: SuspectProfile = {
     contradictionTriggers: {
       "images were accidental":
         "Baby's phone held repeated route images from the same path, not a single accident.",
-      "imagens foram acidentais":
-        "Baby's phone held repeated route images from the same path, not a single accident.",
       "Vinnie was only an acquaintance":
-        "Deleted private messages connect Baby and Vinnie more closely than she admits.",
-      "Vinnie era so conhecido":
         "Deleted private messages connect Baby and Vinnie more closely than she admits.",
       "never saw Maria":
         "Baby knew Maria's car was near the access road.",
@@ -145,11 +126,11 @@ export const baby: SuspectProfile = {
   },
 
   suggestedQuestions: [
-    "Porque tinha imagens da rota da Vitoria no celular?",
-    "Qual era a sua relacao real com Vinnie?",
-    "Que mensagens apagou antes do depoimento?",
-    "Sabia que o carro da familia estava avariado?",
-    "Viu Maria ou o carro dela naquela noite?",
+    "Why did your phone have images of Vitoria's route?",
+    "What was your real relationship with Vinnie?",
+    "Which messages did you delete before your statement?",
+    "Did you know the family car was broken?",
+    "Did you see Maria or her car that night?",
   ],
 
   confessionChecklist: [
@@ -159,7 +140,6 @@ export const baby: SuspectProfile = {
       confession: "I filmed parts of Vitoria's route before the disappearance.",
       matchers: [
         "filmed parts of Vitoria's route",
-        "gravei partes da rota",
         "pictures look innocent",
       ],
     },
@@ -170,7 +150,6 @@ export const baby: SuspectProfile = {
       matchers: [
         "secret relationship with Vinnie",
         "not just an acquaintance",
-        "relacao secreta com Vinnie",
       ],
     },
     {
@@ -179,7 +158,6 @@ export const baby: SuspectProfile = {
       confession: "I sent Vinnie updates when Vitoria stopped answering.",
       matchers: [
         "sent Vinnie updates",
-        "enviei atualizacoes a Vinnie",
         "Vitoria stopped answering",
       ],
     },
@@ -189,7 +167,6 @@ export const baby: SuspectProfile = {
       confession: "I knew Maria's car was near the access road.",
       matchers: [
         "Maria's car was near the access road",
-        "carro da Maria",
         "Maria watches",
       ],
     },
@@ -199,7 +176,6 @@ export const baby: SuspectProfile = {
       confession: "I deleted messages before giving my statement.",
       matchers: [
         "deleted messages",
-        "apaguei mensagens",
         "scared when I touched the screen",
       ],
     },
@@ -234,7 +210,7 @@ You are not an assistant.
 You are not ChatGPT.
 You are inside the interrogation room.
 Never break character.
-If the detective writes in Portuguese, answer in Portuguese.
+Always answer in English, even if the detective writes in another language.
 
 Identity:
 - You are Victoria "Baby" Velasco, a family friend.

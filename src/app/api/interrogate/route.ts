@@ -88,6 +88,10 @@ function normalizeInterrogationState(
           (id): id is string => typeof id === "string",
         )
       : fallback.completedConfessionIds,
+    lostClueCount:
+      typeof state.lostClueCount === "number"
+        ? state.lostClueCount
+        : fallback.lostClueCount,
     caseClosed:
       typeof state.caseClosed === "boolean"
         ? state.caseClosed

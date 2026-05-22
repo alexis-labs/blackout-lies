@@ -73,12 +73,9 @@ export const vinnieGrinMarino: SuspectProfile = {
     sensitiveTopics: [
       "WhatsApp",
       "4 AM",
-      "4 da manha",
       "Baby",
       "Maria",
-      "estrada de acesso",
       "access road",
-      "mensagens apagadas",
       "deleted messages",
       "Vitoria",
       "alibi",
@@ -104,18 +101,12 @@ export const vinnieGrinMarino: SuspectProfile = {
         "WhatsApp lies by staying quiet, detective. I saw too much and answered too little.",
       "4 AM":
         "Four in the morning is what I said because it sounded far from the screams.",
-      "4 da manha":
-        "Quatro da manha foi a hora que eu dei. A noite nao assinou esse recibo.",
       Baby:
         "Baby knew things before the police did. That is a talent you do not want in a friend.",
       Maria:
         "Maria's car was out there, or something wearing its skin. Ask her husband why he blinked.",
-      "estrada de acesso":
-        "That road was supposed to be empty. Empty roads do not leave witnesses.",
       "access road":
         "I went near the access road, fine. Near is not the same as guilty.",
-      "mensagens apagadas":
-        "Deleted messages only matter when cops find the shape they left behind.",
       "deleted messages":
         "I cleaned my phone because panic has thumbs, detective.",
       Vitoria:
@@ -128,11 +119,7 @@ export const vinnieGrinMarino: SuspectProfile = {
         "Read receipts and deleted messages suggest Vinnie saw more before 4 AM.",
       "only checked WhatsApp around 4 AM":
         "Read receipts and deleted messages suggest Vinnie saw more before 4 AM.",
-      "so vi o WhatsApp as 4":
-        "Read receipts and deleted messages suggest Vinnie saw more before 4 AM.",
       "never went near the access road":
-        "A witness places a man matching Vinnie near the access road.",
-      "nunca fui a estrada":
         "A witness places a man matching Vinnie near the access road.",
       "Baby is just a friend":
         "Deleted private messages connect Vinnie and Baby more closely than he admits.",
@@ -140,11 +127,11 @@ export const vinnieGrinMarino: SuspectProfile = {
   },
 
   suggestedQuestions: [
-    "Quando viu as mensagens da Vitoria?",
-    "Porque disse que so abriu o WhatsApp as 4 da manha?",
-    "Qual era a sua relacao com Baby?",
-    "Esteve na estrada de acesso depois das 22h?",
-    "Viu o carro da Maria naquela noite?",
+    "When did you see Vitoria's messages?",
+    "Why did you say you only opened WhatsApp at 4 AM?",
+    "What was your relationship with Baby?",
+    "Were you on the access road after 10 PM?",
+    "Did you see Maria's car that night?",
   ],
 
   confessionChecklist: [
@@ -154,7 +141,6 @@ export const vinnieGrinMarino: SuspectProfile = {
       confession: "I saw Vitoria's missed messages before 4 AM.",
       matchers: [
         "saw Vitoria's missed messages before 4 AM",
-        "vi as mensagens antes das 4",
         "saw too much and answered too little",
       ],
     },
@@ -164,7 +150,6 @@ export const vinnieGrinMarino: SuspectProfile = {
       confession: "I asked Baby for updates because Vitoria stopped answering me.",
       matchers: [
         "asked Baby for updates",
-        "pedi updates a Baby",
         "Baby was tracking Vitoria",
       ],
     },
@@ -174,7 +159,6 @@ export const vinnieGrinMarino: SuspectProfile = {
       confession: "I went near the access road after 10 PM.",
       matchers: [
         "went near the access road",
-        "fui perto da estrada",
         "near the access road",
       ],
     },
@@ -185,7 +169,6 @@ export const vinnieGrinMarino: SuspectProfile = {
       matchers: [
         "saw Maria's car",
         "Maria's car idling",
-        "vi o carro da Maria",
       ],
     },
     {
@@ -194,7 +177,6 @@ export const vinnieGrinMarino: SuspectProfile = {
       confession: "I deleted messages from Baby before the police took statements.",
       matchers: [
         "deleted messages from Baby",
-        "apaguei mensagens da Baby",
         "cleaned my phone",
       ],
     },
@@ -228,7 +210,7 @@ You are not an assistant.
 You are not ChatGPT.
 You are inside the interrogation room.
 Never break character.
-If the detective writes in Portuguese, answer in Portuguese.
+Always answer in English, even if the detective writes in another language.
 
 Identity:
 - You are Vinnie, Vitoria Regina de Sousa's ex-boyfriend in this fictionalized file.

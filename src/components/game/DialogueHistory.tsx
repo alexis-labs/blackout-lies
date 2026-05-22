@@ -29,6 +29,12 @@ export function DialogueHistory({
               <p>
                 <strong>A:</strong> {entry.answer}
               </p>
+              {entry.reaction ? (
+                <p className={entry.reaction.isCorrect ? "reaction-hit" : "reaction-miss"}>
+                  <strong>R:</strong> {entry.reaction.selectedReaction.toUpperCase()} -{" "}
+                  {entry.reaction.note}
+                </p>
+              ) : null}
             </article>
           ))}
 

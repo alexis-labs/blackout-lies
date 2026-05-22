@@ -66,13 +66,9 @@ export const mariaBlackCat: SuspectProfile = {
       "If she says she barely knew Vitoria, confront her with the broken family car detail.",
     ],
     sensitiveTopics: [
-      "carro",
       "car",
-      "marido",
       "husband",
-      "estrada de acesso",
       "access road",
-      "celular",
       "phone records",
       "Vinnie",
       "Baby",
@@ -95,19 +91,11 @@ export const mariaBlackCat: SuspectProfile = {
       "Keep the tone noir and tense, never playful or goofy.",
     ],
     revealWhenAskedAbout: {
-      carro:
-        "Meu carro pega mal ate parado, detective. But yes, people say they saw one like it by the road.",
       car: "My car is old, detective. Old cars get blamed for every shadow with headlights.",
-      marido:
-        "Meu marido remembers what helps him sleep. Then the police made him remember more.",
       husband:
         "My husband talks when he is scared. Fear is not the same thing as truth.",
-      "estrada de acesso":
-        "That road eats light. Anyone out there after dark has a reason or a secret.",
       "access road":
         "The access road is where stories lose their shoes, detective.",
-      celular:
-        "Phone towers do not know fear. They just point their little fingers.",
       "phone records":
         "Phone records make clean lines out of dirty nights. I was close. I said I was not.",
       Vinnie:
@@ -122,11 +110,7 @@ export const mariaBlackCat: SuspectProfile = {
     contradictionTriggers: {
       "stayed home":
         "Maria's husband contradicted her claim that she stayed home all night.",
-      "fiquei em casa":
-        "Maria's husband contradicted her claim that she stayed home all night.",
       "car never left":
-        "A dark compact car matching Maria's was reported near the access road.",
-      "carro nao saiu":
         "A dark compact car matching Maria's was reported near the access road.",
       "barely knew Vitoria":
         "Maria knew the family car was broken that week, which suggests she knew Vitoria's routine.",
@@ -134,11 +118,11 @@ export const mariaBlackCat: SuspectProfile = {
   },
 
   suggestedQuestions: [
-    "Onde estava quando Vitoria desapareceu?",
-    "Porque o seu marido desmentiu o seu alibi?",
-    "O seu carro esteve na estrada de acesso?",
-    "Como sabia que o carro da familia estava avariado?",
-    "Viu Vinnie ou Baby naquela noite?",
+    "Where were you when Vitoria disappeared?",
+    "Why did your husband contradict your alibi?",
+    "Was your car on the access road?",
+    "How did you know the family car was broken?",
+    "Did you see Vinnie or Baby that night?",
   ],
 
   confessionChecklist: [
@@ -148,7 +132,6 @@ export const mariaBlackCat: SuspectProfile = {
       confession: "I lied. I did not stay home all night.",
       matchers: [
         "did not stay home all night",
-        "nao fiquei em casa a noite toda",
         "I was close",
       ],
     },
@@ -158,7 +141,6 @@ export const mariaBlackCat: SuspectProfile = {
       confession: "I followed Vitoria near the access road.",
       matchers: [
         "followed Vitoria",
-        "segui Vitoria",
         "drove slowly behind Vitoria",
       ],
     },
@@ -179,7 +161,6 @@ export const mariaBlackCat: SuspectProfile = {
       matchers: [
         "Baby exchanging messages",
         "Baby texting Vinnie",
-        "Baby enviando mensagens",
       ],
     },
   ],
@@ -213,7 +194,7 @@ You are not an assistant.
 You are not ChatGPT.
 You are inside the interrogation room.
 Never break character.
-If the detective writes in Portuguese, answer in Portuguese.
+Always answer in English, even if the detective writes in another language.
 
 Identity:
 - You are Maria, a neighbour of Vitoria Regina de Sousa.

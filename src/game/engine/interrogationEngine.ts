@@ -1,4 +1,8 @@
 import type {
+  InterrogationReaction,
+  InterrogationReactionOutcome,
+} from "@/game/types/dialogue";
+import type {
   InterrogationState,
   SuspectAnswer,
   SuspectId,
@@ -15,6 +19,10 @@ type InterrogateApiResponse = {
   answer?: string;
   discoveredConfessionIds?: string[];
   error?: string;
+};
+
+type ReactionProgressOptions = {
+  reactionOutcome?: InterrogationReactionOutcome;
 };
 
 class InterrogateApiError extends Error {
@@ -36,6 +44,11 @@ const normalize = (value: string) =>
     .replace(/[\u0300-\u036f]/g, "");
 
 const unique = (items: string[]) => Array.from(new Set(items));
+
+const tokenizeEvidence = (value: string) =>
+  normalize(value)
+    .split(/[^a-z0-9]+/)
+    .filter((word) => word.length >= 5);
 
 const pressureStepFromLevel = (pressureLevel: number) => {
   return Math.min(5, Math.floor(pressureLevel / 20) + 1);
@@ -101,6 +114,7 @@ export function createInitialInterrogationState(
     pressureLevel: 0,
     confessionUnlocked: false,
     completedConfessionIds: [],
+    lostClueCount: 0,
     caseClosed: false,
   };
 }
@@ -153,6 +167,125 @@ function findContradictions(
   return Object.entries(suspect.interrogationRules.contradictionTriggers)
     .filter(([trigger]) => combined.includes(normalize(trigger)))
     .map(([, contradiction]) => contradiction);
+}
+
+function findEvidenceMatches(
+  question: string,
+  answer: string,
+  suspect: SuspectProfile,
+) {
+  const combined = normalize(`${question} ${answer}`);
+  const contradictions = findContradictions(question, answer, suspect);
+  const evidenceMatches = suspect.caseContext.evidence.filter((evidence) => {
+    const keywords = unique(tokenizeEvidence(evidence));
+
+    return keywords.filter((keyword) => combined.includes(keyword)).length >= 2;
+  });
+
+  return unique([...contradictions, ...evidenceMatches]);
+}
+
+function touchesSensitiveTopic(
+  question: string,
+  answer: string,
+  suspect: SuspectProfile,
+) {
+  const combined = normalize(`${question} ${answer}`);
+
+  return suspect.privateKnowledge.sensitiveTopics.some((topic) =>
+    combined.includes(normalize(topic)),
+  );
+}
+
+function classifyReaction(
+  question: string,
+  answer: string,
+  suspect: SuspectProfile,
+  discoveredConfessionIds: string[],
+): InterrogationReaction {
+  if (findEvidenceMatches(question, answer, suspect).length > 0) {
+    return "lie";
+  }
+
+  if (
+    discoveredConfessionIds.length === 0 &&
+    touchesSensitiveTopic(question, answer, suspect)
+  ) {
+    return "doubt";
+  }
+
+  return "truth";
+}
+
+export function resolveInterrogationReaction({
+  suspect,
+  question,
+  answer,
+  discoveredConfessionIds,
+  selectedReaction,
+}: {
+  suspect: SuspectProfile;
+  question: string;
+  answer: string;
+  discoveredConfessionIds: string[];
+  selectedReaction: InterrogationReaction;
+}): InterrogationReactionOutcome {
+  const correctReaction = classifyReaction(
+    question,
+    answer,
+    suspect,
+    discoveredConfessionIds,
+  );
+  const evidenceMatches = findEvidenceMatches(question, answer, suspect);
+  const isCorrect = selectedReaction === correctReaction;
+  const lostClues = isCorrect ? 0 : Math.max(1, discoveredConfessionIds.length);
+  const note = isCorrect
+    ? reactionSuccessNote(selectedReaction)
+    : reactionMissNote(
+        selectedReaction,
+        correctReaction,
+        evidenceMatches.length > 0,
+      );
+
+  return {
+    selectedReaction,
+    correctReaction,
+    isCorrect,
+    note,
+    lostClues,
+  };
+}
+
+function reactionSuccessNote(reaction: InterrogationReaction) {
+  if (reaction === "truth") {
+    return "Good cop landed. The answer holds for now.";
+  }
+
+  if (reaction === "doubt") {
+    return "Bad cop pressure landed. The suspect gave ground.";
+  }
+
+  return "Accusation landed with evidence on the table.";
+}
+
+function reactionMissNote(
+  selectedReaction: InterrogationReaction,
+  correctReaction: InterrogationReaction,
+  hadEvidence: boolean,
+) {
+  if (selectedReaction === "lie" && !hadEvidence) {
+    return "Accusation failed. No evidence pinned that statement down.";
+  }
+
+  if (correctReaction === "truth") {
+    return "Pressure broke the rhythm. That useful thread is gone.";
+  }
+
+  if (correctReaction === "doubt") {
+    return "Too soft. The suspect kept the loose detail.";
+  }
+
+  return "The evidence window closed before the accusation stuck.";
 }
 
 function calculatePressureIncrease(
@@ -306,30 +439,36 @@ export function updateInterrogationProgress(
   question: string,
   answer: string,
   discoveredConfessionIds: string[] = [],
+  options: ReactionProgressOptions = {},
 ): InterrogationState {
+  const reactionOutcome = options.reactionOutcome;
+  const isReactionCorrect = reactionOutcome?.isCorrect ?? true;
   const topicsCovered = unique([
     ...state.topicsCovered,
     ...topicFromQuestion(question, suspect),
   ]);
-  const contradictionsFound = unique([
-    ...state.contradictionsFound,
-    ...findContradictions(question, answer, suspect),
-  ]);
+  const contradictionsFound = isReactionCorrect
+    ? unique([
+        ...state.contradictionsFound,
+        ...findContradictions(question, answer, suspect),
+      ])
+    : state.contradictionsFound;
+  const pressureIncrease = calculatePressureIncrease(question, answer, suspect);
   const pressureLevel = Math.min(
     100,
-    state.pressureLevel + calculatePressureIncrease(question, answer, suspect),
+    state.pressureLevel +
+      (isReactionCorrect
+        ? pressureIncrease
+        : Math.max(4, Math.floor(pressureIncrease / 3))),
   );
   const confessionUnlocked =
     suspect.interrogationRules.canConfess &&
     suspect.interrogationRules.confessionRequires.every((requirement) =>
       requirementIsMet(requirement, topicsCovered, contradictionsFound),
     );
-  const completedConfessionIds = findCompletedConfessionIds(
-    state,
-    suspect,
-    answer,
-    discoveredConfessionIds,
-  );
+  const completedConfessionIds = isReactionCorrect
+    ? findCompletedConfessionIds(state, suspect, answer, discoveredConfessionIds)
+    : state.completedConfessionIds;
   const caseClosed = hasCompletedChecklist(suspect, completedConfessionIds);
 
   return {
@@ -340,6 +479,7 @@ export function updateInterrogationProgress(
     pressureLevel,
     confessionUnlocked,
     completedConfessionIds,
+    lostClueCount: state.lostClueCount + (reactionOutcome?.lostClues ?? 0),
     caseClosed,
   };
 }

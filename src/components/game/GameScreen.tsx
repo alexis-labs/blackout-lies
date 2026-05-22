@@ -5,14 +5,15 @@ import { CaseFilePanel } from "@/components/game/CaseFilePanel";
 import { InputBar } from "@/components/game/InputBar";
 import { PageTransition } from "@/components/game/PageTransition";
 import { PressureBar } from "@/components/game/PressureBar";
+import { ReactionControls } from "@/components/game/ReactionControls";
 import { SpeechBubble } from "@/components/game/SpeechBubble";
-import { SuggestedQuestions } from "@/components/game/SuggestedQuestions";
 import { SoundToggle } from "@/components/game/SoundToggle";
 import { SuspectBackground } from "@/components/game/SuspectBackground";
 import { SuspectSelector } from "@/components/game/SuspectSelector";
 import {
   askSuspect,
   createInitialInterrogationState,
+  resolveInterrogationReaction,
   updateInterrogationProgress,
 } from "@/game/engine/interrogationEngine";
 import {
@@ -22,7 +23,10 @@ import {
 } from "@/game/suspects";
 import { getCaseFolderById } from "@/game/suspects/cases";
 import type { CaseFileTab, CaseProgress } from "@/game/types/case";
-import type { DialogueEntry } from "@/game/types/dialogue";
+import type {
+  DialogueEntry,
+  InterrogationReaction,
+} from "@/game/types/dialogue";
 import type {
   InterrogationState,
   SuspectId,
@@ -43,6 +47,14 @@ type PendingQuestion = {
   text: string;
 };
 
+type PendingReaction = {
+  suspectId: SuspectId;
+  entryId: string;
+  question: string;
+  answer: string;
+  discoveredConfessionIds: string[];
+};
+
 type InterrogationGameState = {
   activeFileTab: CaseFileTab;
   input: string;
@@ -53,6 +65,7 @@ type InterrogationGameState = {
   status: GameStatus;
   inputErrorKey: number;
   pendingQuestion?: PendingQuestion;
+  pendingReaction?: PendingReaction;
 };
 
 const registeredSuspects = getAllSuspects();
@@ -132,6 +145,7 @@ function createInitialGameState(caseId: string): InterrogationGameState {
     status: "idle",
     inputErrorKey: 0,
     pendingQuestion: undefined,
+    pendingReaction: undefined,
   };
 }
 
@@ -184,7 +198,12 @@ export function GameScreen({
     game.pendingQuestion?.suspectId === activeSuspect.id
       ? game.pendingQuestion.text
       : undefined;
+  const pendingReaction =
+    game.pendingReaction?.suspectId === activeSuspect.id
+      ? game.pendingReaction
+      : undefined;
   const isBusy = game.status === "thinking" || game.status === "typing";
+  const isAwaitingReaction = Boolean(pendingReaction);
   const isSuspectTransitioning = Boolean(transitioningSuspectId);
   const isCaseClosed = activeInterrogationState.caseClosed;
   const caseProgress = useMemo<CaseProgress>(() => {
@@ -218,10 +237,6 @@ export function GameScreen({
       activeFileTab,
       isFileOpen: true,
     }));
-  }
-
-  function selectSuggestedQuestion(question: string) {
-    setGame((current) => ({ ...current, input: question }));
   }
 
   function setActiveSuspectId(suspectId: SuspectId) {
@@ -277,7 +292,11 @@ export function GameScreen({
       return;
     }
 
-    if (isBusy || interrogationState.caseClosed) {
+    if (
+      isBusy ||
+      interrogationState.caseClosed ||
+      game.pendingReaction?.suspectId === suspect.id
+    ) {
       return;
     }
 
@@ -300,8 +319,9 @@ export function GameScreen({
       });
       const { answer, discoveredConfessionIds } = suspectAnswer;
       stopThinkingLoop();
+      const entryId = makeDialogueId();
       const entry: DialogueEntry = {
-        id: makeDialogueId(),
+        id: entryId,
         question,
         answer,
         timestamp: formatTimestamp(),
@@ -311,23 +331,13 @@ export function GameScreen({
         const latestState =
           current.interrogationStates[suspect.id] ??
           createInitialInterrogationState(suspect.id);
-        const progressedState = updateInterrogationProgress(
-          latestState,
-          suspect,
-          question,
-          answer,
-          discoveredConfessionIds,
-        );
 
         return {
           ...current,
-          activeFileTab: progressedState.caseClosed
-            ? "case"
-            : current.activeFileTab,
           interrogationStates: {
             ...current.interrogationStates,
             [suspect.id]: {
-              ...progressedState,
+              ...latestState,
               history: [...latestState.history, entry],
             },
           },
@@ -337,6 +347,13 @@ export function GameScreen({
           },
           status: "typing",
           pendingQuestion: undefined,
+          pendingReaction: {
+            suspectId: suspect.id,
+            entryId,
+            question,
+            answer,
+            discoveredConfessionIds,
+          },
         };
       });
     } catch {
@@ -375,6 +392,69 @@ export function GameScreen({
     }
   }
 
+  function selectReaction(selectedReaction: InterrogationReaction) {
+    const reaction = pendingReaction;
+    const suspect = activeSuspect;
+
+    if (!reaction || isBusy || isCaseClosed) {
+      return;
+    }
+
+    setGame((current) => {
+      const latestState =
+        current.interrogationStates[suspect.id] ??
+        createInitialInterrogationState(suspect.id);
+      const entry = latestState.history.find(
+        (historyEntry) => historyEntry.id === reaction.entryId,
+      );
+      const historyBeforeReaction = latestState.history.filter(
+        (historyEntry) => historyEntry.id !== reaction.entryId,
+      );
+      const stateBeforeReaction = {
+        ...latestState,
+        history: historyBeforeReaction,
+      };
+      const reactionOutcome = resolveInterrogationReaction({
+        suspect,
+        question: reaction.question,
+        answer: reaction.answer,
+        discoveredConfessionIds: reaction.discoveredConfessionIds,
+        selectedReaction,
+      });
+      const progressedState = updateInterrogationProgress(
+        stateBeforeReaction,
+        suspect,
+        reaction.question,
+        reaction.answer,
+        reaction.discoveredConfessionIds,
+        { reactionOutcome },
+      );
+      const reactedEntry: DialogueEntry = {
+        id: reaction.entryId,
+        question: reaction.question,
+        answer: reaction.answer,
+        timestamp: entry?.timestamp ?? formatTimestamp(),
+        reaction: reactionOutcome,
+      };
+
+      return {
+        ...current,
+        activeFileTab: progressedState.caseClosed ? "case" : "history",
+        interrogationStates: {
+          ...current.interrogationStates,
+          [suspect.id]: {
+            ...progressedState,
+            history: [...historyBeforeReaction, reactedEntry],
+          },
+        },
+        pendingReaction:
+          current.pendingReaction?.entryId === reaction.entryId
+            ? undefined
+            : current.pendingReaction,
+      };
+    });
+  }
+
   return (
     <main className="interrogation-screen">
       <SuspectBackground backgroundUrl={activeSuspect.backgroundUrl} />
@@ -395,7 +475,11 @@ export function GameScreen({
         <SuspectSelector
           suspects={allSuspects}
           activeSuspectId={activeSuspect.id}
-          disabled={game.status === "thinking" || isSuspectTransitioning}
+          disabled={
+            game.status === "thinking" ||
+            isSuspectTransitioning ||
+            Boolean(game.pendingReaction)
+          }
           onChange={setActiveSuspectId}
         />
 
@@ -430,9 +514,10 @@ export function GameScreen({
       </section>
 
       <div className="interrogation-bottom-hud">
-        <SuggestedQuestions
-          questions={activeSuspect.suggestedQuestions}
-          onSelectQuestion={selectSuggestedQuestion}
+        <ReactionControls
+          disabled={isBusy || isCaseClosed}
+          hasPendingReaction={isAwaitingReaction}
+          onSelectReaction={selectReaction}
         />
 
         <InputBar
@@ -440,7 +525,7 @@ export function GameScreen({
           isFileOpen={isFileOpen}
           hasError={game.status === "error"}
           key={`input-${game.inputErrorKey}`}
-          disabled={isBusy || isCaseClosed}
+          disabled={isBusy || isCaseClosed || isAwaitingReaction}
           isThinking={game.status === "thinking"}
           onInputChange={updateInput}
           onSubmit={submitQuestion}
