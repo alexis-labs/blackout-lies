@@ -79,6 +79,12 @@ function normalizeInterrogationState(
       typeof state.pressureLevel === "number"
         ? state.pressureLevel
         : fallback.pressureLevel,
+    focusLevel:
+      typeof state.focusLevel === "number"
+        ? state.focusLevel
+        : fallback.focusLevel,
+    maxFocus:
+      typeof state.maxFocus === "number" ? state.maxFocus : fallback.maxFocus,
     confessionUnlocked:
       typeof state.confessionUnlocked === "boolean"
         ? state.confessionUnlocked
@@ -88,6 +94,23 @@ function normalizeInterrogationState(
           (id): id is string => typeof id === "string",
         )
       : fallback.completedConfessionIds,
+    usedEvidenceIds: Array.isArray(state.usedEvidenceIds)
+      ? state.usedEvidenceIds.filter(
+          (id): id is string => typeof id === "string",
+        )
+      : fallback.usedEvidenceIds,
+    confirmedEvidenceIds: Array.isArray(state.confirmedEvidenceIds)
+      ? state.confirmedEvidenceIds.filter(
+          (id): id is string => typeof id === "string",
+        )
+      : fallback.confirmedEvidenceIds,
+    completedCaseDeskChallengeIds: Array.isArray(
+      state.completedCaseDeskChallengeIds,
+    )
+      ? state.completedCaseDeskChallengeIds.filter(
+          (id): id is string => typeof id === "string",
+        )
+      : fallback.completedCaseDeskChallengeIds,
     lostClueCount:
       typeof state.lostClueCount === "number"
         ? state.lostClueCount

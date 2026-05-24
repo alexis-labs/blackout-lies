@@ -134,6 +134,64 @@ export const nicoGrinMoretti: SuspectProfile = {
     "Did you see Rosa's car that night?",
   ],
 
+  caseDeskChallenges: [
+    {
+      id: "nico-whatsapp-4am-contradiction",
+      suspectId: "nico-grin-moretti",
+      claimText:
+        "Nico's timing around Elena's messages is slipping. Pin it to the file before he laughs it off.",
+      triggerTerms: [
+        "WhatsApp",
+        "4 AM",
+        "messages",
+        "read receipts",
+        "saw too much",
+        "answered too little",
+      ],
+      correctEvidenceId: "nico-whatsapp-4am",
+      decoyEvidenceIds: [
+        "nico-alibi-gap",
+        "nico-mill-road-witness",
+        "nico-elena-missed-messages",
+      ],
+      timeLimit: 14,
+      successNote:
+        "CONTRADICTION. His clean 4 AM story buckles under the WhatsApp statement.",
+      missNote:
+        "THREAD LOST. Nico rides the pause and the phone timeline goes soft.",
+      pressureGain: 18,
+      missPenalty: 1,
+      contradiction:
+        "Nico's WhatsApp timing contradicts his 4 AM statement.",
+    },
+    {
+      id: "nico-mill-road-denial",
+      suspectId: "nico-grin-moretti",
+      claimText:
+        "Nico denies the road. The witness file is close enough to burn him if you grab it fast.",
+      triggerTerms: [
+        "never went near the mill road",
+        "not near the mill road",
+        "was nowhere near the mill road",
+      ],
+      correctEvidenceId: "nico-mill-road-witness",
+      decoyEvidenceIds: [
+        "nico-whatsapp-4am",
+        "nico-baby-deleted",
+        "nico-alibi-gap",
+      ],
+      timeLimit: 12,
+      successNote:
+        "CONTRADICTION. The witness sighting puts his denial under the lamp.",
+      missNote:
+        "NO LINK. The road lead cools while Nico watches you fumble the file.",
+      pressureGain: 16,
+      missPenalty: 1,
+      contradiction:
+        "A witness places a man matching Nico near the mill road.",
+    },
+  ],
+
   confessionChecklist: [
     {
       id: "nico-saw-messages",

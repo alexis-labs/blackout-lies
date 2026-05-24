@@ -1,3 +1,5 @@
+import type { CaseDeskResolution } from "@/game/types/caseDesk";
+
 export type InterrogationReaction = "truth" | "doubt" | "lie";
 
 export type InterrogationReactionOutcome = {
@@ -14,4 +16,5 @@ export type DialogueEntry = {
   answer: string;
   timestamp: string;
   reaction?: InterrogationReactionOutcome;
+  deskResult?: CaseDeskResolution;
 };

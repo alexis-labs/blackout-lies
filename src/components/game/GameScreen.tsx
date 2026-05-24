@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { CaseFilePanel } from "@/components/game/CaseFilePanel";
+import { EvidenceDesk } from "@/components/game/EvidenceDesk";
 import { InputBar } from "@/components/game/InputBar";
 import { PageTransition } from "@/components/game/PageTransition";
 import { PressureBar } from "@/components/game/PressureBar";
@@ -13,6 +14,9 @@ import { SuspectSelector } from "@/components/game/SuspectSelector";
 import {
   askSuspect,
   createInitialInterrogationState,
+  findCaseDeskChallenge,
+  getCaseEvidenceCards,
+  resolveCaseDeskChallenge,
   resolveInterrogationReaction,
   updateInterrogationProgress,
 } from "@/game/engine/interrogationEngine";
@@ -23,6 +27,10 @@ import {
 } from "@/game/suspects";
 import { getCaseFolderById } from "@/game/suspects/cases";
 import type { CaseFileTab, CaseProgress } from "@/game/types/case";
+import type {
+  CaseDeskChallenge,
+  CaseDeskResolution,
+} from "@/game/types/caseDesk";
 import type {
   DialogueEntry,
   InterrogationReaction,
@@ -55,6 +63,15 @@ type PendingReaction = {
   discoveredConfessionIds: string[];
 };
 
+type PendingCaseDesk = {
+  suspectId: SuspectId;
+  entryId: string;
+  question: string;
+  answer: string;
+  discoveredConfessionIds: string[];
+  challenge: CaseDeskChallenge;
+};
+
 type InterrogationGameState = {
   activeFileTab: CaseFileTab;
   input: string;
@@ -66,6 +83,7 @@ type InterrogationGameState = {
   inputErrorKey: number;
   pendingQuestion?: PendingQuestion;
   pendingReaction?: PendingReaction;
+  pendingCaseDesk?: PendingCaseDesk;
 };
 
 const registeredSuspects = getAllSuspects();
@@ -146,6 +164,7 @@ function createInitialGameState(caseId: string): InterrogationGameState {
     inputErrorKey: 0,
     pendingQuestion: undefined,
     pendingReaction: undefined,
+    pendingCaseDesk: undefined,
   };
 }
 
@@ -164,6 +183,7 @@ export function GameScreen({
   onProgressChange,
 }: GameScreenProps) {
   const allSuspects = useMemo(() => getSuspectsForCase(caseId), [caseId]);
+  const caseFolder = useMemo(() => getCaseFolderById(caseId), [caseId]);
   const [game, setGame] = useState<InterrogationGameState>(
     () => createInitialGameState(caseId),
   );
@@ -202,7 +222,21 @@ export function GameScreen({
     game.pendingReaction?.suspectId === activeSuspect.id
       ? game.pendingReaction
       : undefined;
-  const isBusy = game.status === "thinking" || game.status === "typing";
+  const pendingCaseDesk =
+    game.pendingCaseDesk?.suspectId === activeSuspect.id
+      ? game.pendingCaseDesk
+      : undefined;
+  const activeEvidenceCards = useMemo(
+    () =>
+      getCaseEvidenceCards(
+        activeSuspect,
+        caseFolder?.status !== "LOCKED" ? caseFolder?.evidenceCards : [],
+      ),
+    [activeSuspect, caseFolder],
+  );
+  const isDeskOpen = Boolean(pendingCaseDesk);
+  const isBusy =
+    game.status === "thinking" || game.status === "typing" || isDeskOpen;
   const hasReactionTarget = Boolean(pendingReaction);
   const isSuspectTransitioning = Boolean(transitioningSuspectId);
   const isCaseClosed = activeInterrogationState.caseClosed;
@@ -265,6 +299,10 @@ export function GameScreen({
       activeFileTab: "case",
       input: "",
       status: current.status === "thinking" ? current.status : "idle",
+      pendingCaseDesk:
+        current.pendingCaseDesk?.suspectId === nextSuspectId
+          ? current.pendingCaseDesk
+          : undefined,
     }));
   }
 
@@ -292,10 +330,7 @@ export function GameScreen({
       return;
     }
 
-    if (
-      isBusy ||
-      interrogationState.caseClosed
-    ) {
+    if (isBusy || interrogationState.caseClosed) {
       return;
     }
 
@@ -325,11 +360,48 @@ export function GameScreen({
         answer,
         timestamp: formatTimestamp(),
       };
+      const caseDeskChallenge = findCaseDeskChallenge({
+        suspect,
+        interrogationState,
+        question,
+        answer,
+      });
 
       setGame((current) => {
         const latestState =
           current.interrogationStates[suspect.id] ??
           createInitialInterrogationState(suspect.id);
+        const nextHistory = [...latestState.history, entry];
+
+        if (caseDeskChallenge) {
+          return {
+            ...current,
+            activeFileTab: "history",
+            interrogationStates: {
+              ...current.interrogationStates,
+              [suspect.id]: {
+                ...latestState,
+                history: nextHistory,
+              },
+            },
+            suspectMessages: {
+              ...current.suspectMessages,
+              [suspect.id]: answer,
+            },
+            status: "typing",
+            pendingQuestion: undefined,
+            pendingReaction: undefined,
+            pendingCaseDesk: {
+              suspectId: suspect.id,
+              entryId,
+              question,
+              answer,
+              discoveredConfessionIds,
+              challenge: caseDeskChallenge,
+            },
+          };
+        }
+
         const progressedState = updateInterrogationProgress(
           latestState,
           suspect,
@@ -345,7 +417,7 @@ export function GameScreen({
             ...current.interrogationStates,
             [suspect.id]: {
               ...progressedState,
-              history: [...latestState.history, entry],
+              history: nextHistory,
             },
           },
           suspectMessages: {
@@ -361,6 +433,7 @@ export function GameScreen({
             answer,
             discoveredConfessionIds,
           },
+          pendingCaseDesk: undefined,
         };
       });
     } catch {
@@ -394,16 +467,104 @@ export function GameScreen({
           },
           status: "typing",
           pendingQuestion: undefined,
+          pendingCaseDesk: undefined,
         };
       });
     }
+  }
+
+  function resolvePendingCaseDesk(resolution: CaseDeskResolution) {
+    const caseDesk = pendingCaseDesk;
+    const suspect = activeSuspect;
+
+    if (!caseDesk || caseDesk.suspectId !== suspect.id) {
+      return;
+    }
+
+    play(resolution.isCorrect ? "fileOpen" : "errorBuzz");
+
+    setGame((current) => {
+      const latestState =
+        current.interrogationStates[suspect.id] ??
+        createInitialInterrogationState(suspect.id);
+      const entry = latestState.history.find(
+        (historyEntry) => historyEntry.id === caseDesk.entryId,
+      );
+      const progressedState = updateInterrogationProgress(
+        latestState,
+        suspect,
+        caseDesk.question,
+        caseDesk.answer,
+        caseDesk.discoveredConfessionIds,
+        { caseDeskResolution: resolution },
+      );
+
+      return {
+        ...current,
+        activeFileTab: "history",
+        interrogationStates: {
+          ...current.interrogationStates,
+          [suspect.id]: {
+            ...progressedState,
+            history: latestState.history.map((historyEntry) =>
+              historyEntry.id === caseDesk.entryId
+                ? {
+                    ...(entry ?? historyEntry),
+                    deskResult: resolution,
+                  }
+                : historyEntry,
+            ),
+          },
+        },
+        suspectMessages: {
+          ...current.suspectMessages,
+          [suspect.id]: resolution.isCorrect
+            ? `${caseDesk.answer}\n\n${suspect.shortName}'s eyes drop to the file. "That one bites."`
+            : `${caseDesk.answer}\n\n${suspect.shortName} lets the silence work for him.`,
+        },
+        pendingCaseDesk:
+          current.pendingCaseDesk?.entryId === caseDesk.entryId
+            ? undefined
+            : current.pendingCaseDesk,
+      };
+    });
+  }
+
+  function selectEvidence(evidenceId: string) {
+    const caseDesk = pendingCaseDesk;
+
+    if (!caseDesk || game.status === "typing") {
+      return;
+    }
+
+    resolvePendingCaseDesk(
+      resolveCaseDeskChallenge({
+        challenge: caseDesk.challenge,
+        selectedEvidenceId: evidenceId,
+      }),
+    );
+  }
+
+  function timeoutEvidenceDesk() {
+    const caseDesk = pendingCaseDesk;
+
+    if (!caseDesk || game.status === "typing") {
+      return;
+    }
+
+    resolvePendingCaseDesk(
+      resolveCaseDeskChallenge({
+        challenge: caseDesk.challenge,
+        timedOut: true,
+      }),
+    );
   }
 
   function selectReaction(selectedReaction: InterrogationReaction) {
     const reaction = pendingReaction;
     const suspect = activeSuspect;
 
-    if (!reaction || game.status === "thinking" || isCaseClosed) {
+    if (!reaction || game.status === "thinking" || isCaseClosed || isDeskOpen) {
       return;
     }
 
@@ -443,6 +604,7 @@ export function GameScreen({
           current.pendingReaction?.entryId === reaction.entryId
             ? undefined
             : current.pendingReaction,
+        pendingCaseDesk: undefined,
       };
     });
   }
@@ -484,6 +646,7 @@ export function GameScreen({
         activeTab={game.activeFileTab}
         suspect={activeSuspect}
         interrogationState={activeInterrogationState}
+        evidenceCards={activeEvidenceCards}
         pendingQuestion={pendingQuestion}
         onTabChange={setActiveFileTab}
       />
@@ -503,7 +666,7 @@ export function GameScreen({
 
       <div className="interrogation-bottom-hud">
         <ReactionControls
-          disabled={game.status === "thinking" || isCaseClosed}
+          disabled={game.status === "thinking" || isCaseClosed || isDeskOpen}
           hasPendingReaction={hasReactionTarget}
           onSelectReaction={selectReaction}
         />
@@ -522,6 +685,18 @@ export function GameScreen({
 
         <PressureBar pressureLevel={activeInterrogationState.pressureLevel} />
       </div>
+
+      {pendingCaseDesk ? (
+        <EvidenceDesk
+          key={pendingCaseDesk.challenge.id}
+          challenge={pendingCaseDesk.challenge}
+          evidenceCards={activeEvidenceCards}
+          interrogationState={activeInterrogationState}
+          paused={game.status === "typing"}
+          onSelectEvidence={selectEvidence}
+          onTimeout={timeoutEvidenceDesk}
+        />
+      ) : null}
 
       {isSuspectTransitioning ? (
         <PageTransition

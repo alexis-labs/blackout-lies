@@ -1,4 +1,9 @@
 import type {
+  CaseDeskChallenge,
+  CaseDeskResolution,
+  CaseEvidenceCard,
+} from "@/game/types/caseDesk";
+import type {
   InterrogationReaction,
   InterrogationReactionOutcome,
 } from "@/game/types/dialogue";
@@ -23,6 +28,7 @@ type InterrogateApiResponse = {
 
 type ReactionProgressOptions = {
   reactionOutcome?: InterrogationReactionOutcome;
+  caseDeskResolution?: CaseDeskResolution;
 };
 
 class InterrogateApiError extends Error {
@@ -112,11 +118,33 @@ export function createInitialInterrogationState(
     topicsCovered: [],
     contradictionsFound: [],
     pressureLevel: 0,
+    focusLevel: 3,
+    maxFocus: 3,
     confessionUnlocked: false,
     completedConfessionIds: [],
+    usedEvidenceIds: [],
+    confirmedEvidenceIds: [],
+    completedCaseDeskChallengeIds: [],
     lostClueCount: 0,
     caseClosed: false,
   };
+}
+
+export function getCaseEvidenceCards(
+  suspect: SuspectProfile,
+  caseEvidenceCards: CaseEvidenceCard[] = [],
+): CaseEvidenceCard[] {
+  if (caseEvidenceCards.length > 0) {
+    return caseEvidenceCards;
+  }
+
+  return suspect.caseContext.evidence.map((evidence, index) => ({
+    id: `${suspect.id}-evidence-${index + 1}`,
+    label: `Evidence ${index + 1}`,
+    body: evidence,
+    source: "Case file",
+    kind: "note",
+  }));
 }
 
 function topicFromQuestion(question: string, suspect: SuspectProfile) {
@@ -167,6 +195,57 @@ function findContradictions(
   return Object.entries(suspect.interrogationRules.contradictionTriggers)
     .filter(([trigger]) => combined.includes(normalize(trigger)))
     .map(([, contradiction]) => contradiction);
+}
+
+export function findCaseDeskChallenge({
+  suspect,
+  question,
+  answer,
+  interrogationState,
+}: {
+  suspect: SuspectProfile;
+  question: string;
+  answer: string;
+  interrogationState: InterrogationState;
+}): CaseDeskChallenge | undefined {
+  const completedIds = new Set(
+    interrogationState.completedCaseDeskChallengeIds ?? [],
+  );
+  const combined = normalize(`${question} ${answer}`);
+
+  return suspect.caseDeskChallenges?.find((challenge) => {
+    if (completedIds.has(challenge.id)) {
+      return false;
+    }
+
+    return challenge.triggerTerms.some((term) =>
+      combined.includes(normalize(term)),
+    );
+  });
+}
+
+export function resolveCaseDeskChallenge({
+  challenge,
+  selectedEvidenceId,
+  timedOut = false,
+}: {
+  challenge: CaseDeskChallenge;
+  selectedEvidenceId?: string;
+  timedOut?: boolean;
+}): CaseDeskResolution {
+  const isCorrect =
+    !timedOut && selectedEvidenceId === challenge.correctEvidenceId;
+
+  return {
+    challengeId: challenge.id,
+    selectedEvidenceId,
+    isCorrect,
+    timedOut,
+    note: isCorrect ? challenge.successNote : challenge.missNote,
+    pressureDelta: isCorrect ? challenge.pressureGain : 0,
+    focusDelta: isCorrect ? 0 : -challenge.missPenalty,
+    contradiction: isCorrect ? challenge.contradiction : undefined,
+  };
 }
 
 function findEvidenceMatches(
@@ -442,7 +521,9 @@ export function updateInterrogationProgress(
   options: ReactionProgressOptions = {},
 ): InterrogationState {
   const reactionOutcome = options.reactionOutcome;
-  const isReactionCorrect = reactionOutcome?.isCorrect ?? true;
+  const caseDeskResolution = options.caseDeskResolution;
+  const isReactionCorrect =
+    reactionOutcome?.isCorrect ?? caseDeskResolution?.isCorrect ?? true;
   const topicsCovered = unique([
     ...state.topicsCovered,
     ...topicFromQuestion(question, suspect),
@@ -451,15 +532,22 @@ export function updateInterrogationProgress(
     ? unique([
         ...state.contradictionsFound,
         ...findContradictions(question, answer, suspect),
+        ...(caseDeskResolution?.contradiction
+          ? [caseDeskResolution.contradiction]
+          : []),
       ])
     : state.contradictionsFound;
   const pressureIncrease = calculatePressureIncrease(question, answer, suspect);
+  const adjustedPressureIncrease = caseDeskResolution
+    ? caseDeskResolution.isCorrect
+      ? pressureIncrease + caseDeskResolution.pressureDelta
+      : Math.max(2, Math.floor(pressureIncrease / 4))
+    : isReactionCorrect
+      ? pressureIncrease
+      : Math.max(4, Math.floor(pressureIncrease / 3));
   const pressureLevel = Math.min(
     100,
-    state.pressureLevel +
-      (isReactionCorrect
-        ? pressureIncrease
-        : Math.max(4, Math.floor(pressureIncrease / 3))),
+    state.pressureLevel + adjustedPressureIncrease,
   );
   const confessionUnlocked =
     suspect.interrogationRules.canConfess &&
@@ -469,6 +557,20 @@ export function updateInterrogationProgress(
   const completedConfessionIds = isReactionCorrect
     ? findCompletedConfessionIds(state, suspect, answer, discoveredConfessionIds)
     : state.completedConfessionIds;
+  const selectedEvidenceId = caseDeskResolution?.selectedEvidenceId;
+  const usedEvidenceIds = selectedEvidenceId
+    ? unique([...(state.usedEvidenceIds ?? []), selectedEvidenceId])
+    : (state.usedEvidenceIds ?? []);
+  const confirmedEvidenceIds =
+    selectedEvidenceId && caseDeskResolution?.isCorrect
+      ? unique([...(state.confirmedEvidenceIds ?? []), selectedEvidenceId])
+      : (state.confirmedEvidenceIds ?? []);
+  const completedCaseDeskChallengeIds = caseDeskResolution?.isCorrect
+    ? unique([
+        ...(state.completedCaseDeskChallengeIds ?? []),
+        caseDeskResolution.challengeId,
+      ])
+    : (state.completedCaseDeskChallengeIds ?? []);
   const caseClosed = hasCompletedChecklist(suspect, completedConfessionIds);
 
   return {
@@ -477,9 +579,25 @@ export function updateInterrogationProgress(
     topicsCovered,
     contradictionsFound,
     pressureLevel,
+    focusLevel: Math.max(
+      0,
+      Math.min(
+        state.maxFocus,
+        state.focusLevel + (caseDeskResolution?.focusDelta ?? 0),
+      ),
+    ),
+    maxFocus: state.maxFocus,
     confessionUnlocked,
     completedConfessionIds,
-    lostClueCount: state.lostClueCount + (reactionOutcome?.lostClues ?? 0),
+    usedEvidenceIds,
+    confirmedEvidenceIds,
+    completedCaseDeskChallengeIds,
+    lostClueCount:
+      state.lostClueCount +
+      (reactionOutcome?.lostClues ?? 0) +
+      (caseDeskResolution && !caseDeskResolution.isCorrect
+        ? Math.abs(caseDeskResolution.focusDelta)
+        : 0),
     caseClosed,
   };
 }

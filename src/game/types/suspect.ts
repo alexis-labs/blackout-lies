@@ -1,4 +1,7 @@
 import type { CaseStatus } from "@/game/types/case";
+import type {
+  CaseDeskChallenge,
+} from "@/game/types/caseDesk";
 import type { DialogueEntry } from "@/game/types/dialogue";
 
 export type SuspectId = string;
@@ -73,6 +76,7 @@ export type SuspectProfile = {
 
   suggestedQuestions: string[];
   confessionChecklist: SuspectConfessionChecklist;
+  caseDeskChallenges?: CaseDeskChallenge[];
   detectiveNotes: string[];
   voice: SuspectVoiceProfile;
   systemPrompt: string;
@@ -86,8 +90,13 @@ export type InterrogationState = {
   topicsCovered: string[];
   contradictionsFound: string[];
   pressureLevel: number;
+  focusLevel: number;
+  maxFocus: number;
   confessionUnlocked: boolean;
   completedConfessionIds: string[];
+  usedEvidenceIds: string[];
+  confirmedEvidenceIds: string[];
+  completedCaseDeskChallengeIds: string[];
   lostClueCount: number;
   caseClosed: boolean;
 };

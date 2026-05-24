@@ -1768,6 +1768,314 @@ select:disabled {
   pointer-events: none;
 }
 
+.case-evidence-list li.confirmed {
+  color: var(--button-green);
+}
+
+.case-evidence-list li.confirmed span {
+  display: inline-block;
+  border: 2px solid currentColor;
+  margin-left: 6px;
+  padding: 1px 4px;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 0.42rem;
+  transform: rotate(-2deg);
+}
+
+.evidence-desk {
+  position: absolute;
+  right: clamp(14px, 3vw, 52px);
+  bottom: clamp(126px, 17vh, 178px);
+  z-index: 18;
+  display: grid;
+  width: clamp(430px, 45vw, 760px);
+  max-width: calc(100vw - 28px);
+  gap: 10px;
+  border: 5px solid var(--outline-dark);
+  border-radius: 6px;
+  color: #24180f;
+  background:
+    linear-gradient(90deg, rgba(8, 8, 7, 0.24), transparent 14%, transparent 86%, rgba(8, 8, 7, 0.24)),
+    radial-gradient(circle at 58% 0%, rgba(248, 220, 152, 0.24), transparent 36%),
+    linear-gradient(180deg, #7a4c2a, #3a2418);
+  box-shadow:
+    10px 10px 0 rgba(0, 0, 0, 0.76),
+    0 0 42px rgba(201, 150, 69, 0.18),
+    inset 3px 3px 0 rgba(255, 255, 255, 0.12),
+    inset -3px -3px 0 rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  pointer-events: auto;
+  animation: evidence-desk-rise 180ms steps(4, end);
+}
+
+.evidence-desk.paused {
+  filter: saturate(0.82);
+}
+
+.evidence-desk.danger {
+  animation:
+    evidence-desk-rise 180ms steps(4, end),
+    evidence-danger-shake 360ms steps(2, end) infinite;
+}
+
+.evidence-desk-lamp {
+  position: absolute;
+  inset: -38px 18% auto auto;
+  width: 180px;
+  height: 110px;
+  background: radial-gradient(circle, rgba(248, 220, 152, 0.36), transparent 68%);
+  pointer-events: none;
+}
+
+.evidence-desk-statement {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.evidence-desk-statement > div:first-child {
+  border: 4px solid var(--outline-dark);
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgba(122, 76, 42, 0.08) 0 1px,
+      transparent 1px 18px
+    ),
+    #f0d9ad;
+  box-shadow:
+    4px 4px 0 rgba(0, 0, 0, 0.52),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.28);
+  padding: 10px 12px;
+  transform: rotate(-0.4deg);
+}
+
+.evidence-desk-statement span,
+.evidence-desk-footer span,
+.evidence-desk-footer strong,
+.evidence-card-source,
+.evidence-card-stamp {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.evidence-desk-statement span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--button-blue);
+  font-size: 0.5rem;
+}
+
+.evidence-desk-statement p {
+  margin: 0;
+  font-size: clamp(1rem, 1.15vw, 1.24rem);
+  line-height: 1.12;
+}
+
+.evidence-desk-timer {
+  display: grid;
+  width: 76px;
+  place-items: center;
+  border: 4px solid var(--outline-dark);
+  border-radius: 4px;
+  color: var(--text-light);
+  background:
+    linear-gradient(180deg, rgba(168, 50, 36, 0.22), transparent),
+    #0c130d;
+  box-shadow:
+    4px 4px 0 rgba(0, 0, 0, 0.52),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.1);
+}
+
+.evidence-desk-timer strong {
+  color: var(--button-gold-light);
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: 0.76rem;
+}
+
+.evidence-desk.danger .evidence-desk-timer strong {
+  color: var(--danger-red);
+}
+
+.evidence-desk-meter {
+  height: 12px;
+  overflow: hidden;
+  border: 3px solid var(--outline-dark);
+  border-radius: 3px;
+  background: rgba(8, 8, 7, 0.64);
+}
+
+.evidence-desk-meter span {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, var(--danger-red), var(--button-gold-light));
+  transform-origin: left center;
+  transition: transform 120ms linear;
+}
+
+.evidence-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.evidence-card {
+  position: relative;
+  display: grid;
+  min-height: 132px;
+  align-content: start;
+  gap: 7px;
+  border: 4px solid var(--outline-dark);
+  border-radius: 4px;
+  color: #21150d;
+  background:
+    linear-gradient(90deg, rgba(122, 76, 42, 0.16) 0 4px, transparent 4px 100%),
+    repeating-linear-gradient(
+      0deg,
+      rgba(122, 76, 42, 0.08) 0 1px,
+      transparent 1px 18px
+    ),
+    #e2c99c;
+  box-shadow:
+    5px 5px 0 rgba(0, 0, 0, 0.62),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.26);
+  padding: 11px;
+  text-align: left;
+  transition:
+    transform 100ms steps(2, end),
+    filter 100ms steps(2, end);
+}
+
+.evidence-card:nth-child(2n) {
+  transform: rotate(0.8deg);
+}
+
+.evidence-card:nth-child(2n + 1) {
+  transform: rotate(-0.7deg);
+}
+
+.evidence-card:hover:not(:disabled),
+.evidence-card:focus-visible:not(:disabled) {
+  filter: brightness(1.08);
+  outline: 0;
+  transform: translate(-2px, -2px) rotate(0deg);
+}
+
+.evidence-card:active:not(:disabled) {
+  transform: translate(2px, 2px) rotate(0deg);
+  box-shadow:
+    2px 2px 0 rgba(0, 0, 0, 0.62),
+    inset 1px 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.evidence-card.confirmed {
+  box-shadow:
+    5px 5px 0 rgba(0, 0, 0, 0.62),
+    0 0 0 3px rgba(63, 81, 50, 0.36),
+    inset 2px 2px 0 rgba(255, 255, 255, 0.26);
+}
+
+.evidence-card-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--button-blue);
+  font-size: 0.42rem;
+  line-height: 1.35;
+}
+
+.evidence-card strong {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  font-size: clamp(0.54rem, 0.62vw, 0.68rem);
+  line-height: 1.45;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.evidence-card p {
+  margin: 0;
+  font-size: clamp(0.98rem, 1.05vw, 1.16rem);
+  line-height: 1.12;
+}
+
+.evidence-card-stamp {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 2px solid currentColor;
+  color: var(--button-green);
+  padding: 2px 4px;
+  font-size: 0.42rem;
+  transform: rotate(-3deg);
+}
+
+.evidence-desk-footer {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  border: 3px solid rgba(8, 8, 7, 0.72);
+  border-radius: 4px;
+  color: var(--text-light);
+  background: rgba(5, 6, 7, 0.64);
+  padding: 7px 9px;
+}
+
+.evidence-desk-footer span,
+.evidence-desk-footer strong {
+  color: var(--button-gold-light);
+  font-size: 0.44rem;
+}
+
+.focus-pips {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.focus-pips span {
+  height: 9px;
+  border: 2px solid rgba(8, 8, 7, 0.86);
+  border-radius: 2px;
+  background: rgba(143, 123, 93, 0.32);
+}
+
+.focus-pips span.active {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24), transparent 42%),
+    var(--button-green);
+  box-shadow: 0 0 8px rgba(63, 81, 50, 0.44);
+}
+
+@keyframes evidence-desk-rise {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) rotate(1deg);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+}
+
+@keyframes evidence-danger-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+
+  50% {
+    transform: translateX(2px);
+  }
+}
+
 @media (max-width: 1320px) {
   .case-file-panel {
     left: 2vw;
@@ -1879,6 +2187,16 @@ select:disabled {
 
   .reaction-controls {
     width: clamp(300px, 44vw, 460px);
+  }
+
+  .evidence-desk {
+    right: 12px;
+    bottom: 138px;
+    width: min(560px, calc(100vw - 24px));
+  }
+
+  .evidence-card {
+    min-height: 122px;
   }
 
   .interrogation-input-bar {
@@ -2014,6 +2332,40 @@ select:disabled {
   .reaction-button {
     min-height: 36px;
     padding: 5px 7px;
+  }
+
+  .evidence-desk {
+    bottom: 126px;
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .evidence-desk-statement {
+    grid-template-columns: minmax(0, 1fr) 62px;
+  }
+
+  .evidence-desk-timer {
+    width: 62px;
+  }
+
+  .evidence-card-grid {
+    grid-template-columns: 1fr;
+    max-height: 34vh;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .evidence-card {
+    min-height: 104px;
+    padding: 9px;
+  }
+
+  .evidence-desk-footer {
+    grid-template-columns: auto minmax(80px, 1fr);
+  }
+
+  .evidence-desk-footer strong {
+    display: none;
   }
 
   .interrogation-input-bar {

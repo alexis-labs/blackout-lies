@@ -35,6 +35,23 @@ export function DialogueHistory({
                   {entry.reaction.note}
                 </p>
               ) : null}
+              {entry.deskResult ? (
+                <p
+                  className={
+                    entry.deskResult.isCorrect
+                      ? "reaction-hit"
+                      : "reaction-miss"
+                  }
+                >
+                  <strong>FILE:</strong>{" "}
+                  {entry.deskResult.timedOut
+                    ? "TIMEOUT"
+                    : entry.deskResult.isCorrect
+                      ? "CONTRADICTION"
+                      : "NO LINK"}{" "}
+                  - {entry.deskResult.note}
+                </p>
+              ) : null}
             </article>
           ))}
 

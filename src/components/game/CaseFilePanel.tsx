@@ -4,7 +4,9 @@ import Image from "next/image";
 import { useState } from "react";
 import { CaseFileTabs } from "@/components/game/CaseFileTabs";
 import { DialogueHistory } from "@/components/game/DialogueHistory";
+import { getCaseEvidenceCards } from "@/game/engine/interrogationEngine";
 import type { CaseFileTab } from "@/game/types/case";
+import type { CaseEvidenceCard } from "@/game/types/caseDesk";
 import type {
   SuspectConfession,
   InterrogationState,
@@ -16,6 +18,7 @@ type CaseFilePanelProps = {
   activeTab: CaseFileTab;
   suspect: SuspectProfile;
   interrogationState: InterrogationState;
+  evidenceCards: CaseEvidenceCard[];
   pendingQuestion?: string;
   onTabChange: (tab: CaseFileTab) => void;
 };
@@ -105,9 +108,11 @@ function ConfessionChecklist({
 function CaseTabContent({
   suspect,
   interrogationState,
+  evidenceCards,
 }: {
   suspect: SuspectProfile;
   interrogationState: InterrogationState;
+  evidenceCards: CaseEvidenceCard[];
 }) {
   const topics = interrogationState.topicsCovered.map((topic) =>
     topic.toLowerCase(),
@@ -160,10 +165,22 @@ function CaseTabContent({
 
       <div className="file-section">
         <h2>EVIDENCE:</h2>
-        <ul>
-          {suspect.caseContext.evidence.map((item) => (
-            <li key={item}>{item}</li>
-          ))}
+        <ul className="case-evidence-list">
+          {getCaseEvidenceCards(suspect, evidenceCards).map((item) => {
+            const isConfirmed = interrogationState.confirmedEvidenceIds.includes(
+              item.id,
+            );
+
+            return (
+              <li
+                key={item.id}
+                className={isConfirmed ? "confirmed" : ""}
+              >
+                <strong>{item.label}:</strong> {item.body}
+                {isConfirmed ? <span> FILED</span> : null}
+              </li>
+            );
+          })}
         </ul>
       </div>
 
@@ -266,7 +283,14 @@ function NotesTab({
           <li>Topics covered: {topics}</li>
           <li>Contradictions: {contradictions}</li>
           <li>Pressure level: {interrogationState.pressureLevel}%</li>
+          <li>
+            Focus: {interrogationState.focusLevel}/
+            {interrogationState.maxFocus}
+          </li>
           <li>Lost information: {interrogationState.lostClueCount}</li>
+          <li>
+            Evidence filed: {interrogationState.confirmedEvidenceIds.length}
+          </li>
           <li>
             Confession status:{" "}
             {interrogationState.confessionUnlocked ? "Unlocked" : "Locked"}
@@ -285,6 +309,7 @@ export function CaseFilePanel({
   activeTab,
   suspect,
   interrogationState,
+  evidenceCards,
   pendingQuestion,
   onTabChange,
 }: CaseFilePanelProps) {
@@ -300,6 +325,7 @@ export function CaseFilePanel({
           <CaseTabContent
             suspect={suspect}
             interrogationState={interrogationState}
+            evidenceCards={evidenceCards}
           />
         ) : null}
 
