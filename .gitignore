@@ -8,3 +8,8 @@ tsconfig.tsbuildinfo
 .env.local
 .env.*.local
 release/blackout-lies-itchio.zip
+.github/rulesets/release-tags.json
+.gitignore
+.github/rulesets/default-branch.json
+.gitignore
+.github/workflows/ci.yml
