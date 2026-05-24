@@ -9,6 +9,7 @@
 Blackout Lies is a noir pixel art interrogation game built with Next.js and TypeScript. Players move through a fictional case file, question suspects, pressure contradictions, and piece together a broken timeline one answer at a time.
 
 ![Blackout Lies gameplay example](public/assets/screenshots/gameplay-example.png)
+![Blackout Lies gameplay example 2](public/assets/screenshots/gameplay-example-2.png)
 
 ## Discoverability
 
