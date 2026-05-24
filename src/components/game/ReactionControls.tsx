@@ -19,8 +19,6 @@ type ReactionOption = {
   id: InterrogationReaction;
   icon: LucideIcon;
   label: string;
-  tactic: string;
-  hint: string;
 };
 
 const reactionOptions: ReactionOption[] = [
@@ -28,22 +26,16 @@ const reactionOptions: ReactionOption[] = [
     id: "truth",
     icon: BadgeCheck,
     label: "Truth",
-    tactic: "Good Cop",
-    hint: "Acreditar",
   },
   {
     id: "doubt",
     icon: MessageSquareWarning,
     label: "Doubt",
-    tactic: "Bad Cop",
-    hint: "Duvidar / pressionar",
   },
   {
     id: "lie",
     icon: Scale,
     label: "Lie",
-    tactic: "Accuse",
-    hint: "Mentira / acusar",
   },
 ];
 
@@ -71,11 +63,7 @@ export function ReactionControls({
                 type="button"
                 className={`reaction-button reaction-${option.id}`}
                 disabled={isDisabled}
-                title={
-                  option.id === "lie"
-                    ? "Accuse only works when the statement has evidence."
-                    : option.hint
-                }
+                title={option.label}
                 onMouseEnter={() => play("buttonHover")}
                 onClick={() => {
                   onSelectReaction(option.id);
@@ -83,12 +71,7 @@ export function ReactionControls({
                 }}
               >
                 <Icon size={18} strokeWidth={2.4} aria-hidden="true" />
-                <span>
-                  <strong>{option.label}</strong>
-                  <small>
-                    {option.tactic} - {option.hint}
-                  </small>
-                </span>
+                <strong>{option.label}</strong>
               </button>
             </li>
           );

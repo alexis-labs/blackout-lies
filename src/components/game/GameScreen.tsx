@@ -203,7 +203,7 @@ export function GameScreen({
       ? game.pendingReaction
       : undefined;
   const isBusy = game.status === "thinking" || game.status === "typing";
-  const isAwaitingReaction = Boolean(pendingReaction);
+  const hasReactionTarget = Boolean(pendingReaction);
   const isSuspectTransitioning = Boolean(transitioningSuspectId);
   const isCaseClosed = activeInterrogationState.caseClosed;
   const caseProgress = useMemo<CaseProgress>(() => {
@@ -294,8 +294,7 @@ export function GameScreen({
 
     if (
       isBusy ||
-      interrogationState.caseClosed ||
-      game.pendingReaction?.suspectId === suspect.id
+      interrogationState.caseClosed
     ) {
       return;
     }
@@ -331,13 +330,21 @@ export function GameScreen({
         const latestState =
           current.interrogationStates[suspect.id] ??
           createInitialInterrogationState(suspect.id);
+        const progressedState = updateInterrogationProgress(
+          latestState,
+          suspect,
+          question,
+          answer,
+          discoveredConfessionIds,
+        );
 
         return {
           ...current,
+          activeFileTab: progressedState.caseClosed ? "case" : current.activeFileTab,
           interrogationStates: {
             ...current.interrogationStates,
             [suspect.id]: {
-              ...latestState,
+              ...progressedState,
               history: [...latestState.history, entry],
             },
           },
@@ -396,7 +403,7 @@ export function GameScreen({
     const reaction = pendingReaction;
     const suspect = activeSuspect;
 
-    if (!reaction || isBusy || isCaseClosed) {
+    if (!reaction || game.status === "thinking" || isCaseClosed) {
       return;
     }
 
@@ -407,13 +414,6 @@ export function GameScreen({
       const entry = latestState.history.find(
         (historyEntry) => historyEntry.id === reaction.entryId,
       );
-      const historyBeforeReaction = latestState.history.filter(
-        (historyEntry) => historyEntry.id !== reaction.entryId,
-      );
-      const stateBeforeReaction = {
-        ...latestState,
-        history: historyBeforeReaction,
-      };
       const reactionOutcome = resolveInterrogationReaction({
         suspect,
         question: reaction.question,
@@ -421,30 +421,22 @@ export function GameScreen({
         discoveredConfessionIds: reaction.discoveredConfessionIds,
         selectedReaction,
       });
-      const progressedState = updateInterrogationProgress(
-        stateBeforeReaction,
-        suspect,
-        reaction.question,
-        reaction.answer,
-        reaction.discoveredConfessionIds,
-        { reactionOutcome },
-      );
-      const reactedEntry: DialogueEntry = {
-        id: reaction.entryId,
-        question: reaction.question,
-        answer: reaction.answer,
-        timestamp: entry?.timestamp ?? formatTimestamp(),
-        reaction: reactionOutcome,
-      };
 
       return {
         ...current,
-        activeFileTab: progressedState.caseClosed ? "case" : "history",
+        activeFileTab: "history",
         interrogationStates: {
           ...current.interrogationStates,
           [suspect.id]: {
-            ...progressedState,
-            history: [...historyBeforeReaction, reactedEntry],
+            ...latestState,
+            history: latestState.history.map((historyEntry) =>
+              historyEntry.id === reaction.entryId
+                ? {
+                    ...(entry ?? historyEntry),
+                    reaction: reactionOutcome,
+                  }
+                : historyEntry,
+            ),
           },
         },
         pendingReaction:
@@ -475,11 +467,7 @@ export function GameScreen({
         <SuspectSelector
           suspects={allSuspects}
           activeSuspectId={activeSuspect.id}
-          disabled={
-            game.status === "thinking" ||
-            isSuspectTransitioning ||
-            Boolean(game.pendingReaction)
-          }
+          disabled={game.status === "thinking" || isSuspectTransitioning}
           onChange={setActiveSuspectId}
         />
 
@@ -515,8 +503,8 @@ export function GameScreen({
 
       <div className="interrogation-bottom-hud">
         <ReactionControls
-          disabled={isBusy || isCaseClosed}
-          hasPendingReaction={isAwaitingReaction}
+          disabled={game.status === "thinking" || isCaseClosed}
+          hasPendingReaction={hasReactionTarget}
           onSelectReaction={selectReaction}
         />
 
@@ -525,7 +513,7 @@ export function GameScreen({
           isFileOpen={isFileOpen}
           hasError={game.status === "error"}
           key={`input-${game.inputErrorKey}`}
-          disabled={isBusy || isCaseClosed || isAwaitingReaction}
+          disabled={isBusy || isCaseClosed}
           isThinking={game.status === "thinking"}
           onInputChange={updateInput}
           onSubmit={submitQuestion}

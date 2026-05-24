@@ -593,7 +593,7 @@ export async function askSuspect(
 ): Promise<SuspectAnswer> {
   try {
     return await askConfiguredLLMEngine(params);
-  } catch (error) {
+  } catch {
     await wait(320);
 
     return {

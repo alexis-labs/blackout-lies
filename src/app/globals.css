@@ -1472,10 +1472,10 @@ select:disabled {
 
 .reaction-controls {
   display: flex;
-  width: clamp(430px, 44vw, 740px);
+  width: clamp(300px, 30vw, 460px);
   max-width: calc(100vw - 24px);
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   overflow: hidden;
   border: 2px solid rgba(201, 150, 69, 0.42);
   border-radius: 4px;
@@ -1486,7 +1486,7 @@ select:disabled {
   box-shadow:
     4px 4px 0 rgba(0, 0, 0, 0.42),
     inset 1px 1px 0 rgba(255, 255, 255, 0.08);
-  padding: 4px 6px;
+  padding: 3px 5px;
   pointer-events: auto;
 }
 
@@ -1503,7 +1503,7 @@ select:disabled {
   flex: 1;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   min-width: 0;
-  gap: 6px;
+  gap: 5px;
   margin: 0;
   padding: 0;
   overflow: visible;
@@ -1516,31 +1516,25 @@ select:disabled {
 
 .reaction-button {
   display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
+  grid-template-columns: 18px auto;
   width: 100%;
-  min-height: 48px;
+  min-height: 34px;
   align-items: center;
-  gap: 7px;
+  justify-content: center;
+  gap: 5px;
   border: 2px solid rgba(201, 150, 69, 0.34);
   border-radius: 3px;
   color: rgba(245, 230, 200, 0.9);
   background: rgba(8, 8, 7, 0.34);
-  padding: 6px 7px;
-  text-align: left;
+  padding: 4px 6px;
+  text-align: center;
 }
 
 .reaction-button svg {
   color: var(--button-gold-light);
 }
 
-.reaction-button span {
-  display: grid;
-  min-width: 0;
-  gap: 2px;
-}
-
-.reaction-button strong,
-.reaction-button small {
+.reaction-button strong {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1548,15 +1542,9 @@ select:disabled {
 
 .reaction-button strong {
   font-family: "Press Start 2P", "Courier New", monospace;
-  font-size: clamp(0.52rem, 0.62vw, 0.68rem);
+  font-size: clamp(0.46rem, 0.52vw, 0.58rem);
   letter-spacing: 0;
   text-transform: uppercase;
-}
-
-.reaction-button small {
-  color: rgba(245, 230, 200, 0.68);
-  font-size: clamp(0.72rem, 0.78vw, 0.88rem);
-  line-height: 1;
 }
 
 .reaction-truth:hover,
@@ -1890,7 +1878,7 @@ select:disabled {
   }
 
   .reaction-controls {
-    width: calc(100vw - 24px);
+    width: clamp(300px, 44vw, 460px);
   }
 
   .interrogation-input-bar {
@@ -2013,23 +2001,19 @@ select:disabled {
   }
 
   .reaction-controls {
-    align-items: stretch;
+    align-items: center;
     gap: 6px;
     padding: 5px 6px;
   }
 
   .reaction-controls ul {
-    grid-template-columns: 1fr;
-    gap: 6px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
   }
 
   .reaction-button {
-    min-height: 44px;
-    padding: 7px 8px;
-  }
-
-  .reaction-button small {
-    white-space: normal;
+    min-height: 36px;
+    padding: 5px 7px;
   }
 
   .interrogation-input-bar {
