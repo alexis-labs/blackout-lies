@@ -1,8 +1,30 @@
 # Blackout Lies
 
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=nextdotjs)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-149eca?logo=react&logoColor=white)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-38bdf8?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 Blackout Lies is a noir pixel art interrogation game built with Next.js and TypeScript. Players move through a fictional case file, question suspects, pressure contradictions, and piece together a broken timeline one answer at a time.
 
 ![Blackout Lies gameplay example](public/assets/screenshots/gameplay-example.png)
+
+## Discoverability
+
+Blackout Lies is useful for developers and game makers exploring AI-assisted narrative games, local-first game logic, LLM-backed NPC dialogue, and browser-based detective games.
+
+Suggested GitHub topics:
+
+`noir-game`, `pixel-art`, `detective-game`, `interrogation-game`, `mystery-game`, `narrative-game`, `interactive-fiction`, `browser-game`, `web-game`, `ai-game`, `openai`, `llm`, `nextjs`, `react`, `typescript`, `tailwindcss`, `zustand`, `framer-motion`, `threejs`, `itchio`
+
+Search phrases:
+
+- Noir pixel art interrogation game
+- Detective browser game built with Next.js
+- AI-assisted narrative game with local fallback
+- OpenAI-powered suspect dialogue demo
+- TypeScript mystery game with contradiction tracking
 
 ## Why This Project Exists
 
@@ -121,8 +143,8 @@ src/
       cases.ts
       index.ts
       baby.ts
-      maria-black-cat.ts
-      vinnie-grin-marino.ts
+      nico-grin-moretti.ts
+      rosa-black-cat-neri.ts
     types/
       case.ts
       dialogue.ts
@@ -193,4 +215,4 @@ Before opening a pull request:
 
 ## License
 
-License information has not been defined yet. Add a `LICENSE` file before publishing the project as open source.
+Blackout Lies is released under the MIT License. See [LICENSE](LICENSE).

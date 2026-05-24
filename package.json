@@ -1,8 +1,40 @@
 {
   "name": "blackout-lies",
   "version": "0.1.0",
+  "description": "A noir pixel art interrogation game built with Next.js, TypeScript, and an optional OpenAI-powered suspect response provider.",
   "private": true,
   "license": "MIT",
+  "keywords": [
+    "blackout-lies",
+    "noir-game",
+    "pixel-art",
+    "detective-game",
+    "interrogation-game",
+    "mystery-game",
+    "narrative-game",
+    "interactive-fiction",
+    "web-game",
+    "browser-game",
+    "ai-game",
+    "openai",
+    "llm",
+    "nextjs",
+    "react",
+    "typescript",
+    "tailwindcss",
+    "zustand",
+    "framer-motion",
+    "threejs",
+    "itchio"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alexis-labs/open-ai-game.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alexis-labs/open-ai-game/issues"
+  },
+  "homepage": "https://github.com/alexis-labs/open-ai-game#readme",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
