@@ -342,7 +342,6 @@ export function GameScreen({
       input: "",
       status: "thinking",
       pendingQuestion: { suspectId: suspect.id, text: question },
-      activeFileTab: "history",
     }));
 
     try {
@@ -376,7 +375,6 @@ export function GameScreen({
         if (caseDeskChallenge) {
           return {
             ...current,
-            activeFileTab: "history",
             interrogationStates: {
               ...current.interrogationStates,
               [suspect.id]: {
