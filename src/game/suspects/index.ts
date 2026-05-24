@@ -1,11 +1,11 @@
-import { mariaBlackCat } from "@/game/suspects/maria-black-cat";
-import { vinnieGrinMarino } from "@/game/suspects/vinnie-grin-marino";
+import { nicoGrinMoretti } from "@/game/suspects/nico-grin-moretti";
+import { rosaBlackCatNeri } from "@/game/suspects/rosa-black-cat-neri";
 import { baby } from "@/game/suspects/baby";
 import type { SuspectProfile } from "@/game/types/suspect";
 
 export const suspects = {
-  [vinnieGrinMarino.id]: vinnieGrinMarino,
-  [mariaBlackCat.id]: mariaBlackCat,
+  [nicoGrinMoretti.id]: nicoGrinMoretti,
+  [rosaBlackCatNeri.id]: rosaBlackCatNeri,
   [baby.id]: baby,
 };
 
@@ -19,4 +19,4 @@ export function getAllSuspects() {
   return Object.values(suspects);
 }
 
-export const defaultSuspectId = vinnieGrinMarino.id;
+export const defaultSuspectId = nicoGrinMoretti.id;

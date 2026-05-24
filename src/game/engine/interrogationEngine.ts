@@ -96,10 +96,10 @@ export function mockOffCaseResponse(
     : false;
 
   if (wantsPortuguese) {
-    return `${suspect.shortName} olha para o gravador. "Sala errada para isso, detective. Pergunte-me sobre Cajamar, a estrada, os registos de celular, ou a noite em que Vitoria desapareceu."`;
+    return `${suspect.shortName} olha para o gravador. "Sala errada para isso, detective. Pergunte-me sobre Porto Escuro, a estrada, os registos de celular, ou a noite em que Elena desapareceu."`;
   }
 
-  return `${suspect.shortName} watches the tape reels turn. "Wrong room for that, detective. Ask me about Cajamar, the road, the phone records, or the night Vitoria vanished."`;
+  return `${suspect.shortName} watches the tape reels turn. "Wrong room for that, detective. Ask me about Porto Escuro, the road, the phone records, or the night Elena vanished."`;
 }
 
 export function createInitialInterrogationState(
@@ -136,12 +136,12 @@ function topicFromQuestion(question: string, suspect: SuspectProfile) {
   }
 
   const candidates = unique([
-    "Vitoria",
+    "Elena",
     "WhatsApp",
     "phone records",
     "deleted messages",
-    "access road",
-    "estrada de acesso",
+    "mill road",
+    "estrada do moinho",
     "carro",
     "car",
     ...Object.keys(suspect.interrogationRules.revealWhenAskedAbout),

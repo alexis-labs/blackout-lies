@@ -180,7 +180,7 @@ function CaseTabContent({
         </span>
         <span
           className={
-            hasAnyTopic(["access road", "estrada de acesso"]) ? "stamped" : ""
+            hasAnyTopic(["mill road", "estrada do moinho"]) ? "stamped" : ""
           }
         >
           ROAD

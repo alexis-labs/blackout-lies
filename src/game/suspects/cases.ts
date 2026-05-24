@@ -1,7 +1,7 @@
 import type { CaseFolder } from "@/game/types/case";
 import { baby } from "@/game/suspects/baby";
-import { mariaBlackCat } from "@/game/suspects/maria-black-cat";
-import { vinnieGrinMarino } from "@/game/suspects/vinnie-grin-marino";
+import { nicoGrinMoretti } from "@/game/suspects/nico-grin-moretti";
+import { rosaBlackCatNeri } from "@/game/suspects/rosa-black-cat-neri";
 
 export const playableCaseId = "CV-2025";
 
@@ -11,13 +11,13 @@ export const caseFolders = [
     slotLabel: "CASE 01",
     title: "Blackout Lies",
     status: "OPEN",
-    suspectIds: [vinnieGrinMarino.id, mariaBlackCat.id, baby.id],
+    suspectIds: [nicoGrinMoretti.id, rosaBlackCatNeri.id, baby.id],
     description:
-      "Vitoria Regina de Sousa vanished in Cajamar after a night of broken timelines, deleted messages, and headlights near the access road. Three suspects sit in separate rooms. Each one owns a piece of the same bad night, and the file only closes when every checklist is complete.",
+      "Elena Duarte Vale vanished in Porto Escuro after a night of broken timelines, deleted messages, and headlights near the mill road. Three suspects sit in separate rooms. Each one owns a piece of the same bad night, and the file only closes when every checklist is complete.",
     evidence: [
       "Phone records and WhatsApp messages bend around the same late hours.",
-      "Witnesses place movement near the access road after dark.",
-      "Deleted messages connect Vinnie, Maria, and Baby across the timeline.",
+      "Witnesses place movement near the mill road after dark.",
+      "Deleted messages connect Nico, Rosa, and Baby across the timeline.",
     ],
   },
   {
