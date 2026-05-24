@@ -14,18 +14,6 @@ Blackout Lies is a noir pixel art AI interrogation game built with Next.js and T
 
 Blackout Lies is useful for developers and game makers exploring AI-assisted narrative games, local-first game logic, LLM-backed NPC dialogue, and browser-based detective games.
 
-Suggested GitHub topics:
-
-`noir-game`, `pixel-art`, `detective-game`, `interrogation-game`, `mystery-game`, `narrative-game`, `interactive-fiction`, `browser-game`, `web-game`, `ai-game`, `openai`, `llm`, `nextjs`, `react`, `typescript`, `tailwindcss`, `zustand`, `framer-motion`, `threejs`, `itchio`
-
-Search phrases:
-
-- Noir pixel art interrogation game
-- Detective browser game built with Next.js
-- AI-assisted narrative game with local fallback
-- OpenAI-powered suspect dialogue demo
-- TypeScript mystery game with contradiction tracking
-
 ## Why This Project Exists
 
 Blackout Lies explores how an interrogation game can combine:
