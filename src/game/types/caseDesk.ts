@@ -30,13 +30,19 @@ export type CaseDeskChallenge = {
   contradiction: string;
 };
 
+export type CaseDeskRank = "miss" | "hit" | "perfect";
+
 export type CaseDeskResolution = {
   challengeId: string;
   selectedEvidenceId?: string;
   isCorrect: boolean;
   timedOut: boolean;
+  rank: CaseDeskRank;
   note: string;
   pressureDelta: number;
   focusDelta: number;
+  remainingSeconds: number;
+  speedBonus: number;
+  scoreDelta: number;
   contradiction?: string;
 };

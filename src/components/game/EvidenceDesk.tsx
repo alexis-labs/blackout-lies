@@ -1,7 +1,7 @@
 "use client";
 
 import { FileText, Hourglass, Stamp } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type {
   CaseDeskChallenge,
   CaseEvidenceCard,
@@ -14,7 +14,7 @@ type EvidenceDeskProps = {
   evidenceCards: CaseEvidenceCard[];
   interrogationState: InterrogationState;
   paused?: boolean;
-  onSelectEvidence: (evidenceId: string) => void;
+  onSelectEvidence: (evidenceId: string, remainingSeconds: number) => void;
   onTimeout: () => void;
 };
 
@@ -54,6 +54,19 @@ export function EvidenceDesk({
   );
   const progress = Math.max(0, remaining / challenge.timeLimit);
   const isDanger = remaining <= 4;
+  const liveSpeedBonus = Math.max(0, Math.round(remaining * 42));
+
+  const selectCard = useCallback(
+    (evidenceId: string) => {
+      if (paused || timeoutHandledRef.current) {
+        return;
+      }
+
+      timeoutHandledRef.current = true;
+      onSelectEvidence(evidenceId, remaining);
+    },
+    [onSelectEvidence, paused, remaining],
+  );
 
   useEffect(() => {
     if (paused || timeoutHandledRef.current) {
@@ -75,6 +88,28 @@ export function EvidenceDesk({
     timeoutHandledRef.current = true;
     onTimeout();
   }, [onTimeout, paused, remaining]);
+
+  useEffect(() => {
+    if (paused || timeoutHandledRef.current) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      const cardIndex = Number(event.key) - 1;
+      const card = cards[cardIndex];
+
+      if (!card || event.altKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+
+      event.preventDefault();
+      selectCard(card.id);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [cards, paused, selectCard]);
 
   return (
     <section
@@ -101,7 +136,7 @@ export function EvidenceDesk({
       </div>
 
       <div className="evidence-card-grid">
-        {cards.map((card) => {
+        {cards.map((card, index) => {
           const isConfirmed = interrogationState.confirmedEvidenceIds.includes(
             card.id,
           );
@@ -115,8 +150,11 @@ export function EvidenceDesk({
               }`}
               disabled={paused}
               onMouseEnter={() => play("buttonHover")}
-              onClick={() => onSelectEvidence(card.id)}
+              onClick={() => selectCard(card.id)}
             >
+              <span className="evidence-card-hotkey" aria-hidden="true">
+                {index + 1}
+              </span>
               <span className="evidence-card-source">
                 <FileText size={14} strokeWidth={2.2} aria-hidden="true" />
                 {card.source}
@@ -147,7 +185,9 @@ export function EvidenceDesk({
             />
           ))}
         </div>
-        <strong>{paused ? "READ THE ROOM" : "PRESENT PROOF"}</strong>
+        <div className="evidence-desk-arcade">
+          <strong>{paused ? "READ" : `FAST +${liveSpeedBonus}`}</strong>
+        </div>
       </footer>
     </section>
   );

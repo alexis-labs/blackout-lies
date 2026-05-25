@@ -287,6 +287,7 @@ function NotesTab({
             Focus: {interrogationState.focusLevel}/
             {interrogationState.maxFocus}
           </li>
+          <li>Score: {interrogationState.arcadeScore.toLocaleString()}</li>
           <li>Lost information: {interrogationState.lostClueCount}</li>
           <li>
             Evidence filed: {interrogationState.confirmedEvidenceIds.length}

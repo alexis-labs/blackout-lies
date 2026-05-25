@@ -4,10 +4,6 @@ import type {
   CaseEvidenceCard,
 } from "@/game/types/caseDesk";
 import type {
-  InterrogationReaction,
-  InterrogationReactionOutcome,
-} from "@/game/types/dialogue";
-import type {
   InterrogationState,
   SuspectAnswer,
   SuspectId,
@@ -26,8 +22,7 @@ type InterrogateApiResponse = {
   error?: string;
 };
 
-type ReactionProgressOptions = {
-  reactionOutcome?: InterrogationReactionOutcome;
+type InterrogationProgressOptions = {
   caseDeskResolution?: CaseDeskResolution;
 };
 
@@ -50,11 +45,6 @@ const normalize = (value: string) =>
     .replace(/[\u0300-\u036f]/g, "");
 
 const unique = (items: string[]) => Array.from(new Set(items));
-
-const tokenizeEvidence = (value: string) =>
-  normalize(value)
-    .split(/[^a-z0-9]+/)
-    .filter((word) => word.length >= 5);
 
 const pressureStepFromLevel = (pressureLevel: number) => {
   return Math.min(5, Math.floor(pressureLevel / 20) + 1);
@@ -120,6 +110,7 @@ export function createInitialInterrogationState(
     pressureLevel: 0,
     focusLevel: 3,
     maxFocus: 3,
+    arcadeScore: 0,
     confessionUnlocked: false,
     completedConfessionIds: [],
     usedEvidenceIds: [],
@@ -227,144 +218,36 @@ export function findCaseDeskChallenge({
 export function resolveCaseDeskChallenge({
   challenge,
   selectedEvidenceId,
+  remainingSeconds = 0,
   timedOut = false,
 }: {
   challenge: CaseDeskChallenge;
   selectedEvidenceId?: string;
+  remainingSeconds?: number;
   timedOut?: boolean;
 }): CaseDeskResolution {
   const isCorrect =
     !timedOut && selectedEvidenceId === challenge.correctEvidenceId;
+  const safeRemainingSeconds = Math.max(0, remainingSeconds);
+  const remainingRatio = safeRemainingSeconds / challenge.timeLimit;
+  const rank = isCorrect && remainingRatio >= 0.58 ? "perfect" : isCorrect ? "hit" : "miss";
+  const speedBonus = isCorrect ? Math.round(safeRemainingSeconds * 42) : 0;
+  const scoreDelta = isCorrect ? 500 + speedBonus : 0;
 
   return {
     challengeId: challenge.id,
     selectedEvidenceId,
     isCorrect,
     timedOut,
+    rank,
     note: isCorrect ? challenge.successNote : challenge.missNote,
     pressureDelta: isCorrect ? challenge.pressureGain : 0,
     focusDelta: isCorrect ? 0 : -challenge.missPenalty,
+    remainingSeconds: Math.round(safeRemainingSeconds * 10) / 10,
+    speedBonus,
+    scoreDelta,
     contradiction: isCorrect ? challenge.contradiction : undefined,
   };
-}
-
-function findEvidenceMatches(
-  question: string,
-  answer: string,
-  suspect: SuspectProfile,
-) {
-  const combined = normalize(`${question} ${answer}`);
-  const contradictions = findContradictions(question, answer, suspect);
-  const evidenceMatches = suspect.caseContext.evidence.filter((evidence) => {
-    const keywords = unique(tokenizeEvidence(evidence));
-
-    return keywords.filter((keyword) => combined.includes(keyword)).length >= 2;
-  });
-
-  return unique([...contradictions, ...evidenceMatches]);
-}
-
-function touchesSensitiveTopic(
-  question: string,
-  answer: string,
-  suspect: SuspectProfile,
-) {
-  const combined = normalize(`${question} ${answer}`);
-
-  return suspect.privateKnowledge.sensitiveTopics.some((topic) =>
-    combined.includes(normalize(topic)),
-  );
-}
-
-function classifyReaction(
-  question: string,
-  answer: string,
-  suspect: SuspectProfile,
-  discoveredConfessionIds: string[],
-): InterrogationReaction {
-  if (findEvidenceMatches(question, answer, suspect).length > 0) {
-    return "lie";
-  }
-
-  if (
-    discoveredConfessionIds.length === 0 &&
-    touchesSensitiveTopic(question, answer, suspect)
-  ) {
-    return "doubt";
-  }
-
-  return "truth";
-}
-
-export function resolveInterrogationReaction({
-  suspect,
-  question,
-  answer,
-  discoveredConfessionIds,
-  selectedReaction,
-}: {
-  suspect: SuspectProfile;
-  question: string;
-  answer: string;
-  discoveredConfessionIds: string[];
-  selectedReaction: InterrogationReaction;
-}): InterrogationReactionOutcome {
-  const correctReaction = classifyReaction(
-    question,
-    answer,
-    suspect,
-    discoveredConfessionIds,
-  );
-  const evidenceMatches = findEvidenceMatches(question, answer, suspect);
-  const isCorrect = selectedReaction === correctReaction;
-  const lostClues = isCorrect ? 0 : Math.max(1, discoveredConfessionIds.length);
-  const note = isCorrect
-    ? reactionSuccessNote(selectedReaction)
-    : reactionMissNote(
-        selectedReaction,
-        correctReaction,
-        evidenceMatches.length > 0,
-      );
-
-  return {
-    selectedReaction,
-    correctReaction,
-    isCorrect,
-    note,
-    lostClues,
-  };
-}
-
-function reactionSuccessNote(reaction: InterrogationReaction) {
-  if (reaction === "truth") {
-    return "Good cop landed. The answer holds for now.";
-  }
-
-  if (reaction === "doubt") {
-    return "Bad cop pressure landed. The suspect gave ground.";
-  }
-
-  return "Accusation landed with evidence on the table.";
-}
-
-function reactionMissNote(
-  selectedReaction: InterrogationReaction,
-  correctReaction: InterrogationReaction,
-  hadEvidence: boolean,
-) {
-  if (selectedReaction === "lie" && !hadEvidence) {
-    return "Accusation failed. No evidence pinned that statement down.";
-  }
-
-  if (correctReaction === "truth") {
-    return "Pressure broke the rhythm. That useful thread is gone.";
-  }
-
-  if (correctReaction === "doubt") {
-    return "Too soft. The suspect kept the loose detail.";
-  }
-
-  return "The evidence window closed before the accusation stuck.";
 }
 
 function calculatePressureIncrease(
@@ -518,17 +401,15 @@ export function updateInterrogationProgress(
   question: string,
   answer: string,
   discoveredConfessionIds: string[] = [],
-  options: ReactionProgressOptions = {},
+  options: InterrogationProgressOptions = {},
 ): InterrogationState {
-  const reactionOutcome = options.reactionOutcome;
   const caseDeskResolution = options.caseDeskResolution;
-  const isReactionCorrect =
-    reactionOutcome?.isCorrect ?? caseDeskResolution?.isCorrect ?? true;
+  const isCaseDeskCorrect = caseDeskResolution?.isCorrect ?? true;
   const topicsCovered = unique([
     ...state.topicsCovered,
     ...topicFromQuestion(question, suspect),
   ]);
-  const contradictionsFound = isReactionCorrect
+  const contradictionsFound = isCaseDeskCorrect
     ? unique([
         ...state.contradictionsFound,
         ...findContradictions(question, answer, suspect),
@@ -542,9 +423,7 @@ export function updateInterrogationProgress(
     ? caseDeskResolution.isCorrect
       ? pressureIncrease + caseDeskResolution.pressureDelta
       : Math.max(2, Math.floor(pressureIncrease / 4))
-    : isReactionCorrect
-      ? pressureIncrease
-      : Math.max(4, Math.floor(pressureIncrease / 3));
+    : pressureIncrease;
   const pressureLevel = Math.min(
     100,
     state.pressureLevel + adjustedPressureIncrease,
@@ -554,7 +433,7 @@ export function updateInterrogationProgress(
     suspect.interrogationRules.confessionRequires.every((requirement) =>
       requirementIsMet(requirement, topicsCovered, contradictionsFound),
     );
-  const completedConfessionIds = isReactionCorrect
+  const completedConfessionIds = isCaseDeskCorrect
     ? findCompletedConfessionIds(state, suspect, answer, discoveredConfessionIds)
     : state.completedConfessionIds;
   const selectedEvidenceId = caseDeskResolution?.selectedEvidenceId;
@@ -587,6 +466,7 @@ export function updateInterrogationProgress(
       ),
     ),
     maxFocus: state.maxFocus,
+    arcadeScore: state.arcadeScore + (caseDeskResolution?.scoreDelta ?? 0),
     confessionUnlocked,
     completedConfessionIds,
     usedEvidenceIds,
@@ -594,7 +474,6 @@ export function updateInterrogationProgress(
     completedCaseDeskChallengeIds,
     lostClueCount:
       state.lostClueCount +
-      (reactionOutcome?.lostClues ?? 0) +
       (caseDeskResolution && !caseDeskResolution.isCorrect
         ? Math.abs(caseDeskResolution.focusDelta)
         : 0),

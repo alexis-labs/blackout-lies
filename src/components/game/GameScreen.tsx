@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { ArcadeHud } from "@/components/game/ArcadeHud";
 import { CaseFilePanel } from "@/components/game/CaseFilePanel";
 import { EvidenceDesk } from "@/components/game/EvidenceDesk";
 import { InputBar } from "@/components/game/InputBar";
 import { PageTransition } from "@/components/game/PageTransition";
 import { PressureBar } from "@/components/game/PressureBar";
-import { ReactionControls } from "@/components/game/ReactionControls";
 import { SpeechBubble } from "@/components/game/SpeechBubble";
 import { SoundToggle } from "@/components/game/SoundToggle";
 import { SuspectBackground } from "@/components/game/SuspectBackground";
@@ -17,7 +17,6 @@ import {
   findCaseDeskChallenge,
   getCaseEvidenceCards,
   resolveCaseDeskChallenge,
-  resolveInterrogationReaction,
   updateInterrogationProgress,
 } from "@/game/engine/interrogationEngine";
 import {
@@ -29,11 +28,11 @@ import { getCaseFolderById } from "@/game/suspects/cases";
 import type { CaseFileTab, CaseProgress } from "@/game/types/case";
 import type {
   CaseDeskChallenge,
+  CaseDeskRank,
   CaseDeskResolution,
 } from "@/game/types/caseDesk";
 import type {
   DialogueEntry,
-  InterrogationReaction,
 } from "@/game/types/dialogue";
 import type {
   InterrogationState,
@@ -55,14 +54,6 @@ type PendingQuestion = {
   text: string;
 };
 
-type PendingReaction = {
-  suspectId: SuspectId;
-  entryId: string;
-  question: string;
-  answer: string;
-  discoveredConfessionIds: string[];
-};
-
 type PendingCaseDesk = {
   suspectId: SuspectId;
   entryId: string;
@@ -70,6 +61,13 @@ type PendingCaseDesk = {
   answer: string;
   discoveredConfessionIds: string[];
   challenge: CaseDeskChallenge;
+};
+
+type ArcadeFeedback = {
+  id: string;
+  rank: CaseDeskRank;
+  label: string;
+  scoreDelta: number;
 };
 
 type InterrogationGameState = {
@@ -82,7 +80,6 @@ type InterrogationGameState = {
   status: GameStatus;
   inputErrorKey: number;
   pendingQuestion?: PendingQuestion;
-  pendingReaction?: PendingReaction;
   pendingCaseDesk?: PendingCaseDesk;
 };
 
@@ -163,7 +160,6 @@ function createInitialGameState(caseId: string): InterrogationGameState {
     status: "idle",
     inputErrorKey: 0,
     pendingQuestion: undefined,
-    pendingReaction: undefined,
     pendingCaseDesk: undefined,
   };
 }
@@ -187,6 +183,7 @@ export function GameScreen({
   const [game, setGame] = useState<InterrogationGameState>(
     () => createInitialGameState(caseId),
   );
+  const [arcadeFeedback, setArcadeFeedback] = useState<ArcadeFeedback>();
   const [transitioningSuspectId, setTransitioningSuspectId] =
     useState<SuspectId>();
   const {
@@ -218,10 +215,6 @@ export function GameScreen({
     game.pendingQuestion?.suspectId === activeSuspect.id
       ? game.pendingQuestion.text
       : undefined;
-  const pendingReaction =
-    game.pendingReaction?.suspectId === activeSuspect.id
-      ? game.pendingReaction
-      : undefined;
   const pendingCaseDesk =
     game.pendingCaseDesk?.suspectId === activeSuspect.id
       ? game.pendingCaseDesk
@@ -237,7 +230,6 @@ export function GameScreen({
   const isDeskOpen = Boolean(pendingCaseDesk);
   const isBusy =
     game.status === "thinking" || game.status === "typing" || isDeskOpen;
-  const hasReactionTarget = Boolean(pendingReaction);
   const isSuspectTransitioning = Boolean(transitioningSuspectId);
   const isCaseClosed = activeInterrogationState.caseClosed;
   const caseProgress = useMemo<CaseProgress>(() => {
@@ -256,6 +248,20 @@ export function GameScreen({
   useEffect(() => {
     onProgressChange?.(caseId, caseProgress);
   }, [caseId, caseProgress, onProgressChange]);
+
+  useEffect(() => {
+    if (!arcadeFeedback) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setArcadeFeedback((current) =>
+        current?.id === arcadeFeedback.id ? undefined : current,
+      );
+    }, 1150);
+
+    return () => window.clearTimeout(timer);
+  }, [arcadeFeedback]);
 
   function updateInput(input: string) {
     setGame((current) => ({ ...current, input }));
@@ -388,7 +394,6 @@ export function GameScreen({
             },
             status: "typing",
             pendingQuestion: undefined,
-            pendingReaction: undefined,
             pendingCaseDesk: {
               suspectId: suspect.id,
               entryId,
@@ -424,13 +429,6 @@ export function GameScreen({
           },
           status: "typing",
           pendingQuestion: undefined,
-          pendingReaction: {
-            suspectId: suspect.id,
-            entryId,
-            question,
-            answer,
-            discoveredConfessionIds,
-          },
           pendingCaseDesk: undefined,
         };
       });
@@ -480,6 +478,18 @@ export function GameScreen({
     }
 
     play(resolution.isCorrect ? "fileOpen" : "errorBuzz");
+    setArcadeFeedback({
+      id: `${caseDesk.entryId}-${Date.now()}`,
+      rank: resolution.rank,
+      label: resolution.isCorrect
+        ? resolution.rank === "perfect"
+          ? "PERFECT CONTRADICTION"
+          : "CONTRADICTION"
+        : resolution.timedOut
+          ? "TIMEOUT"
+          : "NO LINK",
+      scoreDelta: resolution.scoreDelta,
+    });
 
     setGame((current) => {
       const latestState =
@@ -517,7 +527,7 @@ export function GameScreen({
         suspectMessages: {
           ...current.suspectMessages,
           [suspect.id]: resolution.isCorrect
-            ? `${caseDesk.answer}\n\n${suspect.shortName}'s eyes drop to the file. "That one bites."`
+            ? `${caseDesk.answer}\n\n${suspect.shortName}'s eyes drop to the file. "${resolution.rank === "perfect" ? "Fast hands, detective. That one bites." : "That one bites."}"`
             : `${caseDesk.answer}\n\n${suspect.shortName} lets the silence work for him.`,
         },
         pendingCaseDesk:
@@ -528,7 +538,7 @@ export function GameScreen({
     });
   }
 
-  function selectEvidence(evidenceId: string) {
+  function selectEvidence(evidenceId: string, remainingSeconds: number) {
     const caseDesk = pendingCaseDesk;
 
     if (!caseDesk || game.status === "typing") {
@@ -539,6 +549,7 @@ export function GameScreen({
       resolveCaseDeskChallenge({
         challenge: caseDesk.challenge,
         selectedEvidenceId: evidenceId,
+        remainingSeconds,
       }),
     );
   }
@@ -558,58 +569,32 @@ export function GameScreen({
     );
   }
 
-  function selectReaction(selectedReaction: InterrogationReaction) {
-    const reaction = pendingReaction;
-    const suspect = activeSuspect;
-
-    if (!reaction || game.status === "thinking" || isCaseClosed || isDeskOpen) {
-      return;
-    }
-
-    setGame((current) => {
-      const latestState =
-        current.interrogationStates[suspect.id] ??
-        createInitialInterrogationState(suspect.id);
-      const entry = latestState.history.find(
-        (historyEntry) => historyEntry.id === reaction.entryId,
-      );
-      const reactionOutcome = resolveInterrogationReaction({
-        suspect,
-        question: reaction.question,
-        answer: reaction.answer,
-        discoveredConfessionIds: reaction.discoveredConfessionIds,
-        selectedReaction,
-      });
-
-      return {
-        ...current,
-        activeFileTab: "history",
-        interrogationStates: {
-          ...current.interrogationStates,
-          [suspect.id]: {
-            ...latestState,
-            history: latestState.history.map((historyEntry) =>
-              historyEntry.id === reaction.entryId
-                ? {
-                    ...(entry ?? historyEntry),
-                    reaction: reactionOutcome,
-                  }
-                : historyEntry,
-            ),
-          },
-        },
-        pendingReaction:
-          current.pendingReaction?.entryId === reaction.entryId
-            ? undefined
-            : current.pendingReaction,
-        pendingCaseDesk: undefined,
-      };
-    });
-  }
-
   return (
-    <main className="interrogation-screen">
+    <main
+      className={`interrogation-screen ${
+        arcadeFeedback ? `arcade-${arcadeFeedback.rank}` : ""
+      } ${isDeskOpen ? "desk-open" : ""}`}
+    >
       <SuspectBackground backgroundUrl={activeSuspect.backgroundUrl} />
+
+      <ArcadeHud interrogationState={activeInterrogationState} />
+
+      {arcadeFeedback ? (
+        <div
+          key={arcadeFeedback.id}
+          className={`arcade-feedback arcade-feedback-${arcadeFeedback.rank}`}
+          aria-live="polite"
+        >
+          <strong>{arcadeFeedback.label}</strong>
+          {arcadeFeedback.scoreDelta > 0 ? (
+            <span>
+              +{arcadeFeedback.scoreDelta.toLocaleString()}
+            </span>
+          ) : (
+            <span>THREAD LOST</span>
+          )}
+        </div>
+      ) : null}
 
       <div className="interrogation-controls" aria-label="Interrogation controls">
         <button
@@ -663,12 +648,6 @@ export function GameScreen({
       </section>
 
       <div className="interrogation-bottom-hud">
-        <ReactionControls
-          disabled={game.status === "thinking" || isCaseClosed || isDeskOpen}
-          hasPendingReaction={hasReactionTarget}
-          onSelectReaction={selectReaction}
-        />
-
         <InputBar
           input={game.input}
           isFileOpen={isFileOpen}

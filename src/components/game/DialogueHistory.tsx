@@ -29,18 +29,12 @@ export function DialogueHistory({
               <p>
                 <strong>A:</strong> {entry.answer}
               </p>
-              {entry.reaction ? (
-                <p className={entry.reaction.isCorrect ? "reaction-hit" : "reaction-miss"}>
-                  <strong>R:</strong> {entry.reaction.selectedReaction.toUpperCase()} -{" "}
-                  {entry.reaction.note}
-                </p>
-              ) : null}
               {entry.deskResult ? (
                 <p
                   className={
                     entry.deskResult.isCorrect
-                      ? "reaction-hit"
-                      : "reaction-miss"
+                      ? "file-hit"
+                      : "file-miss"
                   }
                 >
                   <strong>FILE:</strong>{" "}
@@ -50,6 +44,9 @@ export function DialogueHistory({
                       ? "CONTRADICTION"
                       : "NO LINK"}{" "}
                   - {entry.deskResult.note}
+                  {entry.deskResult.scoreDelta > 0
+                    ? ` (+${entry.deskResult.scoreDelta} pts)`
+                    : ""}
                 </p>
               ) : null}
             </article>

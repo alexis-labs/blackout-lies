@@ -85,6 +85,10 @@ function normalizeInterrogationState(
         : fallback.focusLevel,
     maxFocus:
       typeof state.maxFocus === "number" ? state.maxFocus : fallback.maxFocus,
+    arcadeScore:
+      typeof state.arcadeScore === "number"
+        ? state.arcadeScore
+        : fallback.arcadeScore,
     confessionUnlocked:
       typeof state.confessionUnlocked === "boolean"
         ? state.confessionUnlocked

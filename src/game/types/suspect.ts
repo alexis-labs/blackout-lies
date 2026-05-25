@@ -92,6 +92,7 @@ export type InterrogationState = {
   pressureLevel: number;
   focusLevel: number;
   maxFocus: number;
+  arcadeScore: number;
   confessionUnlocked: boolean;
   completedConfessionIds: string[];
   usedEvidenceIds: string[];
